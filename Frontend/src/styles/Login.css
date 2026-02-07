@@ -1,93 +1,199 @@
-.container {
+/* Page background */
+.login-container {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Card */
-.card {
-  background: white;
-  width: 350px;
-  padding: 30px;
+/* Login card */
+.login-card {
+  background: #ffffff;
+  width: 380px;
+  padding: 35px;
   border-radius: 14px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.4s ease-in-out;
 }
 
-/* Heading */
-.card h2 {
+.login-card h2 {
   text-align: center;
-  margin-bottom: 20px;
-  color: #1f2937; /* dark gray */
-}
-
-/* Error Message */
-.error-message {
-  background-color: #fee2e2;
-  color: #991b1b;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  font-size: 14px;
-  text-align: center;
-  border: 1px solid #fca5a5;
+  margin-bottom: 25px;
+  color: #1f2937;
+  font-size: 26px;
 }
 
 /* Inputs */
-.card input {
+.login-card input {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
   border-radius: 8px;
   border: 1px solid #d1d5db;
-  font-size: 14px;
-  box-sizing: border-box;
+  font-size: 15px;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card input:focus {
+.login-card input:focus {
   outline: none;
-  border-color: #16a34a;
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
-}
-
-.card input:disabled {
-  background-color: #f3f4f6;
-  cursor: not-allowed;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 /* Button */
-.card button {
+.login-card button {
   width: 100%;
   padding: 12px;
-  background: #16a34a; /* green */
-  color: white;
+  background: #4f46e5;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
-  font-weight: bold;
   font-size: 15px;
+  font-weight: bold;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
-.card button:hover:not(:disabled) {
-  background: #15803d;
+.login-card button:hover {
+  background: #4338ca;
 }
 
-.card button:disabled {
+.login-card button:disabled {
   background: #9ca3af;
   cursor: not-allowed;
 }
 
-/* Text */
-.card p {
+/* Links */
+.login-card p {
   text-align: center;
   margin-top: 15px;
   color: #374151;
+  font-size: 14px;
 }
 
-/* Link */
-.card span {
-  color: #16a34a;
+.login-card span {
+  color: #4f46e5;
   cursor: pointer;
+  font-weight: 600;
+}
+
+.login-card span:hover {
+  text-decoration: underline;
+}
+
+/* Forgot password */
+.forgot-link {
+  text-align: right;
+  margin-top: -5px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #4f46e5;
+  cursor: pointer;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* Messages */
+.error-message {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.success-message {
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Modal */
+.modal {
+  background: #ffffff;
+  padding: 25px;
+  width: 340px;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-align: center;
+  color: #1f2937;
+}
+
+.modal input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  margin-bottom: 15px;
+}
+
+/* Modal buttons */
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
   font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-actions button:first-child {
+  background: #16a34a;
+  color: white;
+}
+
+.modal-actions button:first-child:hover {
+  background: #15803d;
+}
+
+.modal-actions .cancel {
+  background: #ef4444;
+  color: white;
+}
+
+.modal-actions .cancel:hover {
+  background: #dc2626;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

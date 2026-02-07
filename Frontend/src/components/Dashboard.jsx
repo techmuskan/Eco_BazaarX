@@ -1,36 +1,55 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { logout, getStoredUser } from "../services/authService";
 import "../styles/Dashboard.css";
 
 function Dashboard({ onLogout }) {
+  const navigate = useNavigate();
   const user = getStoredUser();
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleLogout = () => {
     logout();
     onLogout();
+    navigate("/login"); // ✅ redirect after logout
   };
 
-  if (!user) return <div>Loading...</div>;
+  if (!user) return <div className="loading">Loading...</div>;
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-card">
-        <h2>Welcome to EcoBazar!</h2>
-        <div className="user-info">
-          <h3>User Profile</h3>
-          <div className="info-row">
-            <span className="label">Name:</span>
-            <span className="value">{user.name}</span>
-          </div>
-          <div className="info-row">
-            <span className="label">Email:</span>
-            <span className="value">{user.email}</span>
+    <>
+      {/* Navbar */}
+      <nav className="navbar">
+        <div className="navbar-left">
+          <h2>EcoBazar</h2>
+        </div>
+
+        <div className="navbar-right">
+          <div className="profile-wrapper">
+            <div
+              className="profile-icon"
+              onClick={() => setShowProfile(!showProfile)}
+            >
+              {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+            </div>
+
+            {showProfile && (
+              <div className="profile-dropdown">
+                <p><strong>Name:</strong> {user?.name || "-"}</p>
+                <p><strong>Email:</strong> {user?.email || "-"}</p>
+                <p><strong>Phone:</strong> {user?.phone || "-"}</p>
+                <button onClick={handleLogout}>Logout</button>
+              </div>
+            )}
           </div>
         </div>
-        <button onClick={handleLogout} className="logout-btn">
-          Logout
-        </button>
+      </nav>
+
+      {/* Dashboard Content */}
+      <div className="dashboard-container">
+        <h2>Hello 👋</h2>
       </div>
-    </div>
+    </>
   );
 }
 

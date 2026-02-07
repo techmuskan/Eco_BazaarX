@@ -1,20 +1,29 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
 import "../styles/Login.css";
 
-function Login({ goToSignup, onLoginSuccess }) {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+function Login({ onLoginSuccess }) {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Handle input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError("");
+    setError("");
   };
 
+  // Login submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+
     if (!formData.email || !formData.password) {
       setError("Please fill in all fields");
       return;
@@ -22,9 +31,10 @@ function Login({ goToSignup, onLoginSuccess }) {
 
     setLoading(true);
     try {
-      const isValid = await login(formData);
-      if (isValid) onLoginSuccess(formData);
-      else setError("Invalid email or password");
+      const user = await login(formData);
+      if (!user) throw new Error("Invalid email or password");
+      onLoginSuccess(user);
+      navigate("/dashboard"); // ✅ redirect after login
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -33,11 +43,13 @@ function Login({ goToSignup, onLoginSuccess }) {
   };
 
   return (
-    <div className="container">
-      <div className="card">
+    <div className="login-container">
+      <div className="login-card">
         <h2>Login</h2>
+
+        {error && <div className="error-message">{error}</div>}
+
         <form onSubmit={handleSubmit}>
-          {error && <div className="error-message">{error}</div>}
           <input
             type="email"
             name="email"
@@ -58,8 +70,17 @@ function Login({ goToSignup, onLoginSuccess }) {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <p
+          className="forgot-link"
+          onClick={() => navigate("/forgot-password")}
+        >
+          Forgot Password?
+        </p>
+
         <p>
-          Don’t have an account? <span onClick={goToSignup}>Sign Up</span>
+          Don’t have an account?{" "}
+          <span onClick={() => navigate("/signup")}>Sign Up</span>
         </p>
       </div>
     </div>

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -12,10 +14,11 @@ public class Users {
 
     public Users() {}
 
-    public Users(String name, String email, String password) {
+    public Users(String name, String email, String password, String phone) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.phone = phone;
     }
 
     @Id
@@ -30,4 +33,13 @@ public class Users {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    private String phone;
+
+    // ✅ OTP fields (REQUIRED)
+    @Column(length = 6)
+    private String otp;
+
+    private LocalDateTime otpExpiry;
 }
