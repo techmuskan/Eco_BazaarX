@@ -5,6 +5,8 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import Dashboard from "./components/Dashboard";
 import ForgotPassword from "./components/ForgotPassword";
+import ProductCatalog from "./components/ProductCatalog";
+import ProductDetail from "./components/ProductDetail";
 
 import { isAuthenticated, getStoredUser } from "./services/authService";
 
@@ -78,6 +80,16 @@ function App() {
               <Navigate to="/login" />
             )
           }
+        />
+
+        <Route
+          path="/products"
+          element={user ? <ProductCatalog /> : <Navigate to="/login" />}
+        />
+
+        <Route
+          path="/products/:productId"
+          element={user ? <ProductDetail /> : <Navigate to="/login" />}
         />
 
         {/* Default Route */}
