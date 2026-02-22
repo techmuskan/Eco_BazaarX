@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .product-detail-container {
   padding: 40px;
   max-width: 1200px;
@@ -47,3 +48,138 @@
   font-size: 0.9rem;
   color: #4a5568;
 }
+=======
+.detail-page {
+  min-height: 100vh;
+  padding: 24px clamp(14px, 2.6vw, 34px);
+  background:
+    radial-gradient(circle at 100% 0, rgba(172, 238, 187, 0.35), transparent 35%),
+    linear-gradient(180deg, #f4fff7 0%, #eef6ff 100%);
+}
+
+.detail-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.back-btn {
+  display: inline-flex;
+  text-decoration: none;
+  color: #124d33;
+  border: 1px solid #9ac9a8;
+  background: #f5fff8;
+  border-radius: 999px;
+  padding: 7px 12px;
+}
+
+.detail-main {
+  margin-top: 14px;
+  background: #fff;
+  border: 1px solid #d9e7dd;
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.25fr);
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(41, 72, 55, 0.12);
+}
+
+.detail-main img {
+  width: 100%;
+  height: 100%;
+  max-height: 430px;
+  object-fit: cover;
+}
+
+.detail-content {
+  padding: 18px;
+}
+
+.head-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.head-row h1 {
+  margin: 0;
+  font-size: clamp(21px, 3vw, 34px);
+}
+
+.eco-tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.eco-tag.best,
+.eco-tag.great {
+  background: #c8f5d2;
+  color: #145632;
+}
+
+.eco-tag.good {
+  background: #e7f0ba;
+  color: #4b6418;
+}
+
+.eco-tag.warn {
+  background: #ffe2ba;
+  color: #8b5f20;
+}
+
+.eco-tag.risk {
+  background: #ffd5d5;
+  color: #912121;
+}
+
+.subtitle {
+  color: #4f6358;
+  margin: 8px 0 10px;
+}
+
+.description {
+  color: #31403a;
+  margin: 0 0 12px;
+}
+
+.price-line {
+  font-size: 28px;
+  font-weight: 700;
+  color: #123f2a;
+}
+
+.impact-breakdown h2 {
+  margin: 16px 0 10px;
+  font-size: 20px;
+}
+
+.impact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.impact-grid article {
+  border: 1px solid #d2ded4;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f7fdf8;
+}
+
+.impact-grid p {
+  margin: 0 0 6px;
+  color: #4a5b52;
+}
+
+.impact-grid strong {
+  color: #123f2c;
+}
+
+@media (max-width: 900px) {
+  .detail-main {
+    grid-template-columns: 1fr;
+  }
+}
+>>>>>>> c3670d096ec4ec373c9e00b78303e75bf37d6fd4
