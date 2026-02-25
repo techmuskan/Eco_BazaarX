@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 import "../styles/ForgotPassword.css";
 
 function ForgotPassword() {
@@ -26,18 +27,20 @@ function ForgotPassword() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/user/forgotPassword", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/user/forgot?email=${encodeURIComponent(email)}`,
+        {
+          method: "POST",
+        }
+      );
 
-      const data = await res.text();
+      const data = await res.json().catch(() => ({}));
+      const serverMessage = data?.message || "Failed to send OTP";
 
-      if (data === "User not found") {
-        setError(data);
+      if (!res.ok || serverMessage === "User not found") {
+        setError(serverMessage);
       } else {
-        setMessage(data);
+        setMessage(serverMessage);
         setStep(2);
       }
     } catch {
@@ -64,23 +67,28 @@ function ForgotPassword() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/user/resetPassword", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp, newPassword }),
+      const params = new URLSearchParams({
+        email,
+        otp,
+        newPassword,
       });
 
-      const data = await res.text();
+      const res = await fetch(`${API_BASE_URL}/user/reset?${params.toString()}`, {
+        method: "POST",
+      });
 
-      if (data === "Password reset successfully") {
-        setMessage(data);
+      const data = await res.json().catch(() => ({}));
+      const serverMessage = data?.message || "Failed to reset password";
+
+      if (res.ok && serverMessage.toLowerCase().includes("successful")) {
+        setMessage(serverMessage);
 
         // Redirect to login after short delay
         setTimeout(() => {
           navigate("/login");
         }, 1500);
       } else {
-        setError(data);
+        setError(serverMessage);
       }
     } catch {
       setError("Failed to reset password");
@@ -90,62 +98,77 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="forgot-container">
-      <div className="forgot-card">
-        <h2>Forgot Password</h2>
+    <div className="forgot-theme auth-page">
+      <div className="forgot-shell">
+        <aside className="forgot-aside">
+          <p className="auth-kicker">Account Recovery</p>
+          <h1>Recover access in two steps.</h1>
+          <p>
+            We will verify your email with OTP, then you can set a secure new password.
+          </p>
+          <div className="recovery-steps">
+            <span className={step === 1 ? "active" : ""}>1. Verify Email</span>
+            <span className={step === 2 ? "active" : ""}>2. Reset Password</span>
+          </div>
+        </aside>
 
-        {error && <div className="error-message">{error}</div>}
-        {message && <div className="success-message">{message}</div>}
+        <div className="forgot-card">
+          <h2>Forgot Password</h2>
+          <p className="auth-sub">Enter your details to continue account recovery.</p>
 
-        {step === 1 && (
-          <form onSubmit={handleEmailSubmit}>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? "Sending OTP..." : "Send OTP"}
-            </button>
-          </form>
-        )}
+          {error && <div className="error-message">{error}</div>}
+          {message && <div className="success-message">{message}</div>}
 
-        {step === 2 && (
-          <form onSubmit={handleResetPassword}>
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              disabled={loading}
-            />
-            <input
-              type="password"
-              placeholder="New Password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              disabled={loading}
-            />
-            <input
-              type="password"
-              placeholder="Confirm New Password"
-              value={confirmPassword}
-              onChange={(e) =>
-                setConfirmPassword(e.target.value)
-              }
-              disabled={loading}
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? "Resetting..." : "Reset Password"}
-            </button>
-          </form>
-        )}
+          {step === 1 && (
+            <form onSubmit={handleEmailSubmit}>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
+              <button type="submit" disabled={loading}>
+                {loading ? "Sending OTP..." : "Send OTP"}
+              </button>
+            </form>
+          )}
 
-        <p className="back-link" onClick={() => navigate("/login")}>
-          Back to Login
-        </p>
+          {step === 2 && (
+            <form onSubmit={handleResetPassword}>
+              <input
+                type="text"
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                disabled={loading}
+              />
+              <input
+                type="password"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                disabled={loading}
+              />
+              <input
+                type="password"
+                placeholder="Confirm New Password"
+                value={confirmPassword}
+                onChange={(e) =>
+                  setConfirmPassword(e.target.value)
+                }
+                disabled={loading}
+              />
+              <button type="submit" disabled={loading}>
+                {loading ? "Resetting..." : "Reset Password"}
+              </button>
+            </form>
+          )}
+
+          <p className="back-link" onClick={() => navigate("/login")}>
+            Back to Login
+          </p>
+        </div>
       </div>
     </div>
   );

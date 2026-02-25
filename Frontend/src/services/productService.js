@@ -1,9 +1,7 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 /* ================= API CONFIG ================= */
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 const PRODUCT_API_URL = `${API_BASE_URL}/api`;
 

@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+import { API_BASE_URL } from "../config/api";
+
 const API_URL = `${API_BASE_URL}/user`;
 
 const parseErrorResponse = async (response, fallbackMessage) => {
@@ -84,6 +85,22 @@ export const logout = () => {
 export const getStoredUser = () => {
   const user = localStorage.getItem("user");
   return user ? JSON.parse(user) : null;
+};
+
+// ------------------- GET RESOLVED ROLE
+export const getResolvedRole = () => {
+  const storedUser = getStoredUser();
+  if (storedUser?.role) return String(storedUser.role).toUpperCase();
+
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload?.role ? String(payload.role).toUpperCase() : null;
+  } catch {
+    return null;
+  }
 };
 
 // ------------------- AUTH CHECK

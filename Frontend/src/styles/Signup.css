@@ -1,107 +1,155 @@
-/* Page background */
-.signup-container {
+.signup-theme.auth-page {
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  padding: 20px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 0 0, rgba(255, 238, 179, 0.35), transparent 32%),
+    radial-gradient(circle at 100% 100%, rgba(173, 228, 188, 0.28), transparent 35%),
+    linear-gradient(135deg, var(--bg-grad-a) 0%, var(--bg-grad-b) 100%);
 }
 
-/* Signup card */
-.signup-card {
-  background: #ffffff;
-  width: 400px;
-  padding: 35px;
-  border-radius: 14px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-  animation: slideUp 0.4s ease-in-out;
+.signup-theme .auth-shell {
+  width: min(1080px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(280px, 1.15fr) minmax(300px, 1fr);
 }
 
-.signup-card h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  color: #1f2937;
-  font-size: 26px;
+.signup-theme .auth-showcase {
+  background: linear-gradient(145deg, #0f4f34, #236948 62%, #7fbf9c);
+  color: #f5fff8;
+  padding: clamp(20px, 4vw, 34px);
+  display: grid;
+  align-content: center;
+  gap: 12px;
 }
 
-/* Inputs */
-.signup-card input {
-  width: 92%;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 15px;
-  transition: border 0.3s ease, box-shadow 0.3s ease;
+.signup-theme .auth-kicker {
+  margin: 0;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.88;
 }
 
-.signup-card input:focus {
-  outline: none;
-  border-color: #16a34a;
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+.signup-theme .auth-showcase h1 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.08;
 }
 
-/* Button */
-.signup-card button {
+.signup-theme .auth-showcase p {
+  margin: 0;
+  max-width: 42ch;
+  color: #e9fff1;
+}
+
+.signup-theme .showcase-points {
+  margin-top: 4px;
+  display: grid;
+  gap: 8px;
+}
+
+.signup-theme .showcase-points span {
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid rgba(225, 255, 236, 0.35);
+  background: rgba(10, 55, 35, 0.22);
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.signup-theme .auth-card {
+  padding: clamp(22px, 4vw, 36px);
+}
+
+.signup-theme .auth-card h2 {
+  margin: 0;
+  font-size: 30px;
+  color: var(--text);
+}
+
+.signup-theme .auth-sub {
+  margin: 8px 0 18px;
+  color: var(--text-soft);
+}
+
+.signup-theme .auth-card form {
+  display: grid;
+  gap: 10px;
+}
+
+.signup-theme .auth-card input,
+.signup-theme .auth-card select {
   width: 100%;
-  padding: 12px;
-  background: #71dd12;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: bold;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 13px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.signup-theme .auth-card input:focus,
+.signup-theme .auth-card select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 139, 85, 0.16);
+}
+
+.signup-theme .auth-card button {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.3s ease;
 }
 
-.signup-card button:hover {
-  background: #15803d;
+.signup-theme .auth-card button:hover {
+  background: var(--primary-strong);
 }
 
-.signup-card button:disabled {
-  background: #9ca3af;
+.signup-theme .auth-card button:disabled {
+  background: #b3aa8a;
   cursor: not-allowed;
 }
 
-/* Footer text */
-.signup-card p {
+.signup-theme .auth-card p {
   text-align: center;
-  margin-top: 15px;
+  margin-top: 13px;
+  color: var(--text-soft);
   font-size: 14px;
-  color: #374151;
 }
 
-.signup-card span {
-  color: #16a34a;
-  font-weight: 600;
+.signup-theme .auth-card span {
+  color: var(--primary);
+  font-weight: 700;
   cursor: pointer;
 }
 
-.signup-card span:hover {
-  text-decoration: underline;
-}
-
-/* Error message */
-.error-message {
+.signup-theme .error-message {
   background: #fee2e2;
   color: #b91c1c;
   padding: 10px;
-  border-radius: 6px;
-  font-size: 14px;
-  margin-bottom: 15px;
+  border-radius: 8px;
+  font-size: 13px;
 }
 
-/* Animation */
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@media (max-width: 900px) {
+  .signup-theme .auth-shell {
+    grid-template-columns: 1fr;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .signup-theme .auth-showcase {
+    min-height: 180px;
   }
 }

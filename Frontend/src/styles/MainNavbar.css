@@ -1,0 +1,73 @@
+.main-nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(
+    180deg,
+    rgba(246, 255, 249, 0.96),
+    rgba(240, 251, 244, 0.86)
+  );
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 8px 26px rgba(17, 52, 33, 0.08);
+}
+
+.main-nav-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 10px clamp(14px, 2.8vw, 34px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand {
+  text-decoration: none;
+  font-weight: 800;
+  color: var(--primary-strong);
+  font-size: 20px;
+  letter-spacing: 0.03em;
+  position: relative;
+  padding-left: 16px;
+}
+
+.brand::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(145deg, #2da65d, #1a6a41);
+  box-shadow: 0 0 0 5px rgba(41, 153, 86, 0.16);
+}
+
+.main-nav-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.main-nav-links a {
+  text-decoration: none;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+}
+
+.main-nav-links a:hover {
+  background: #eef9f1;
+  border-color: var(--line);
+}
+
+.main-nav-links a.active {
+  background: linear-gradient(145deg, var(--primary), var(--primary-strong));
+  color: #fff;
+  border-color: var(--primary-strong);
+}

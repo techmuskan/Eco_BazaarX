@@ -1,0 +1,26 @@
+.site-footer {
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, #f9fffb, #f0f8f2);
+  margin-top: 18px;
+}
+
+.footer-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 12px clamp(14px, 2.8vw, 34px);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--text-soft);
+}
+
+.footer-shell p {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.footer-shell span {
+  font-size: 13px;
+}

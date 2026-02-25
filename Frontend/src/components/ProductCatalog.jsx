@@ -1,28 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+import { useToast } from "../context/ToastContext";
+import MainNavbar from "./MainNavbar";
 import {
   createProduct,
   deleteProduct,
   getProducts,
   updateProduct
 } from "../services/productService";
+import { getResolvedRole } from "../services/authService";
 import { uploadProductImage } from "../services/cloudinaryService";
 import "../styles/ProductCatalog.css";
-
-/* ================= USER ROLE ================= */
-
-function getUserRole() {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.role || null;
-  } catch {
-    return null;
-  }
-}
-
-/* ================= CONSTANTS ================= */
 
 const CARBON_FILTERS = ["all", "low", "medium", "high"];
 
@@ -39,8 +28,6 @@ const PACKAGING_MULTIPLIERS = {
   recyclable: 0.9,
   standard: 1.2
 };
-
-/* ================= UTILITIES ================= */
 
 function round(v) {
   return Math.round(v * 100) / 100;
@@ -93,8 +80,6 @@ function calculateAutoCarbon(form) {
   };
 }
 
-/* ================= INITIAL FORM ================= */
-
 function getInitialForm() {
   return {
     name: "",
@@ -113,11 +98,13 @@ function getInitialForm() {
   };
 }
 
-/* ================= COMPONENT ================= */
-
 function ProductCatalog() {
+  const ITEMS_PER_PAGE = 8;
   const navigate = useNavigate();
-  const isAdmin = getUserRole() === "ADMIN";
+  const currentRole = getResolvedRole() || "USER";
+  const isAdmin = currentRole === "ADMIN";
+  const { addToCart, totalItems } = useCart();
+  const { showToast } = useToast();
 
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(getInitialForm());
@@ -134,28 +121,26 @@ function ProductCatalog() {
   const [formError, setFormError] = useState("");
   const [apiError, setApiError] = useState("");
 
-  const [carbonPreview, setCarbonPreview] = useState(null);
-
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [page, setPage] = useState(1);
 
-  /* ================= LOAD PRODUCTS ================= */
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await getProducts();
-        setProducts(data);
-      } catch (e) {
-        setApiError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setApiError("");
+      const data = await getProducts();
+      setProducts(data);
+    } catch (e) {
+      setApiError(e.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  /* ================= FILTER ================= */
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
@@ -176,46 +161,62 @@ function ProductCatalog() {
     });
   }, [products, search, ecoOnly, carbonFilter]);
 
-  /* ================= FORM ================= */
+  const pagedProducts = useMemo(
+    () => filteredProducts.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
+    [filteredProducts, page]
+  );
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, ecoOnly, carbonFilter]);
 
   const onChange = e => {
     const { name, value, type, checked } = e.target;
     setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setFormError("");
   };
 
   const resetForm = () => {
     setForm(getInitialForm());
     setEditingId(null);
-    setCarbonPreview(null);
     setSelectedImageFile(null);
+    setFormError("");
   };
 
-  /* ================= IMAGE ================= */
-
   const onUploadImage = async () => {
-    if (!selectedImageFile) return;
+    if (!selectedImageFile) {
+      setFormError("Select an image first.");
+      return;
+    }
     try {
       setUploadingImage(true);
       const url = await uploadProductImage(selectedImageFile);
       setForm(prev => ({ ...prev, image: url }));
       setSelectedImageFile(null);
+      setFormError("");
+      showToast("Image uploaded successfully.", "success");
     } catch (e) {
-      setFormError("Image upload failed");
+      setFormError(e.message || "Image upload failed");
+      showToast(e.message || "Image upload failed.", "error");
     } finally {
       setUploadingImage(false);
     }
   };
 
-  /* ================= SUBMIT ================= */
-
   const onSubmit = async e => {
     e.preventDefault();
+    setFormError("");
+    setApiError("");
 
     let carbonData;
 
     if (form.carbonMethod === "manual") {
       const manual = Number(form.manualCO2e);
-      if (!manual) return setFormError("Invalid CO2 value");
+      if (!Number.isFinite(manual) || manual <= 0) {
+        setFormError("Manual CO2 value must be greater than 0.");
+        return;
+      }
       carbonData = {
         method: "manual",
         totalCO2ePerKg: round(manual),
@@ -240,20 +241,21 @@ function ProductCatalog() {
       setSaving(true);
       if (editingId) {
         const updated = await updateProduct(editingId, payload);
-        setProducts(prev => prev.map(p => p.id === editingId ? updated : p));
+        setProducts(prev => prev.map(p => (p.id === editingId ? updated : p)));
+        showToast("Product updated.", "success");
       } else {
         const created = await createProduct(payload);
         setProducts(prev => [created, ...prev]);
+        showToast("Product created.", "success");
       }
       resetForm();
     } catch (e) {
       setApiError(e.message);
+      showToast(e.message || "Product save failed.", "error");
     } finally {
       setSaving(false);
     }
   };
-
-  /* ================= EDIT ================= */
 
   const onEdit = p => {
     setEditingId(p.id);
@@ -262,10 +264,9 @@ function ProductCatalog() {
       ...p,
       manualCO2e: p?.carbonData?.totalCO2ePerKg || ""
     });
+    setFormError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  /* ================= DELETE ================= */
 
   const onDelete = async id => {
     if (!window.confirm("Delete product?")) return;
@@ -273,102 +274,354 @@ function ProductCatalog() {
       setDeletingId(id);
       await deleteProduct(id);
       setProducts(prev => prev.filter(p => p.id !== id));
+      showToast("Product deleted.", "success");
     } catch (e) {
       setApiError(e.message);
+      showToast(e.message || "Delete failed.", "error");
     } finally {
       setDeletingId(null);
     }
   };
 
-  /* ================= UI ================= */
-
   return (
     <main className="catalog-page">
+      <MainNavbar />
       <header className="catalog-hero">
-        <h1>Eco Product Catalog</h1>
-        <button onClick={() => navigate("/dashboard")} className="ghost-btn">
-          Dashboard
-        </button>
+        <div>
+          <p className="hero-eyebrow">Sustainable Commerce</p>
+          <h1>Eco Product Catalog</h1>
+          <p className="hero-sub">
+            Explore products with carbon visibility, then use Smart Cart to compare
+            emissions before checkout.
+          </p>
+        </div>
+        <div className="actions-row">
+          <button onClick={() => navigate("/dashboard")} className="ghost-btn">
+            Dashboard
+          </button>
+          <button onClick={() => navigate("/cart")} className="ghost-btn">
+            Cart ({totalItems})
+          </button>
+        </div>
       </header>
 
       <section className="catalog-layout">
-
         {isAdmin && (
           <article className="product-form-panel">
             <h2>{editingId ? "Update Product" : "Add Product"}</h2>
 
             <form onSubmit={onSubmit} className="product-form">
+              <div className="field-grid">
+                <label>
+                  Name
+                  <input name="name" value={form.name} onChange={onChange} required />
+                  <small>Product name as shown to customers.</small>
+                </label>
+                <label>
+                  Category
+                  <input name="category" value={form.category} onChange={onChange} />
+                </label>
+                <label>
+                  Seller
+                  <input name="seller" value={form.seller} onChange={onChange} />
+                </label>
+                <label>
+                  Price
+                  <input
+                    name="price"
+                    type="number"
+                    value={form.price}
+                    onChange={onChange}
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                  <small>Use market price in USD.</small>
+                </label>
+                <label>
+                  Image URL
+                  <input name="image" value={form.image} onChange={onChange} />
+                </label>
+                <label>
+                  Upload Image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => setSelectedImageFile(e.target.files?.[0] || null)}
+                  />
+                  <small>Recommended: square or 4:3 product photo.</small>
+                </label>
+              </div>
 
-              <input name="name" value={form.name} onChange={onChange} placeholder="Name" />
-              <input name="category" value={form.category} onChange={onChange} placeholder="Category" />
-              <input name="seller" value={form.seller} onChange={onChange} placeholder="Seller" />
-              <input name="price" type="number" value={form.price} onChange={onChange} placeholder="Price" />
-
-              <input name="image" value={form.image} onChange={onChange} placeholder="Image URL" />
-
-              <input type="file" onChange={e => setSelectedImageFile(e.target.files[0])} />
-              <button type="button" onClick={onUploadImage} disabled={uploadingImage}>
-                {uploadingImage ? "Uploading..." : "Upload Image"}
+              <button
+                type="button"
+                className="preview-btn"
+                onClick={onUploadImage}
+                disabled={uploadingImage}
+              >
+                {uploadingImage ? "Uploading..." : "Upload to Cloudinary"}
               </button>
-
-              <textarea name="description" value={form.description} onChange={onChange} placeholder="Description" />
 
               <label>
-                <input type="checkbox" name="isEcoFriendly" checked={form.isEcoFriendly} onChange={onChange} />
-                Eco Friendly
+                Description
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={onChange}
+                  rows={4}
+                />
               </label>
 
-              <button className="primary-btn" disabled={saving}>
-                {saving ? "Saving..." : editingId ? "Update" : "Create"}
-              </button>
+              <div className="toggle-line">
+                <label className="inline-check">
+                  <input
+                    type="checkbox"
+                    name="isEcoFriendly"
+                    checked={form.isEcoFriendly}
+                    onChange={onChange}
+                  />
+                  Eco Friendly
+                </label>
+              </div>
 
-              {editingId && <button type="button" onClick={resetForm}>Cancel</button>}
+              <div className="carbon-panel">
+                <h3>Carbon Input Method</h3>
+                <div className="method-row">
+                  <label className="inline-check">
+                    <input
+                      type="radio"
+                      name="carbonMethod"
+                      value="manual"
+                      checked={form.carbonMethod === "manual"}
+                      onChange={onChange}
+                    />
+                    Manual
+                  </label>
+                  <label className="inline-check">
+                    <input
+                      type="radio"
+                      name="carbonMethod"
+                      value="auto"
+                      checked={form.carbonMethod === "auto"}
+                      onChange={onChange}
+                    />
+                    Auto Estimate
+                  </label>
+                </div>
+
+                {form.carbonMethod === "manual" ? (
+                  <label>
+                    Total CO2e per item (kg)
+                    <input
+                      name="manualCO2e"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.manualCO2e}
+                      onChange={onChange}
+                    />
+                    <small>Must be greater than 0.</small>
+                  </label>
+                ) : (
+                  <div className="field-grid">
+                    <label>
+                      Material
+                      <select name="material" value={form.material} onChange={onChange}>
+                        {Object.keys(MATERIAL_MULTIPLIERS).map(material => (
+                          <option key={material} value={material}>
+                            {material}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Weight (kg)
+                      <input
+                        name="weightKg"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={form.weightKg}
+                        onChange={onChange}
+                      />
+                    </label>
+                    <label>
+                      Transport (km)
+                      <input
+                        name="transportKm"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={form.transportKm}
+                        onChange={onChange}
+                      />
+                    </label>
+                    <label>
+                      Packaging
+                      <select
+                        name="packagingType"
+                        value={form.packagingType}
+                        onChange={onChange}
+                      >
+                        {Object.keys(PACKAGING_MULTIPLIERS).map(packaging => (
+                          <option key={packaging} value={packaging}>
+                            {packaging}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {formError && <p className="error-line">{formError}</p>}
+              {apiError && <p className="error-line">{apiError}</p>}
+
+              <div className="actions-row">
+                <button className="primary-btn" disabled={saving}>
+                  {saving ? "Saving..." : editingId ? "Update" : "Create"}
+                </button>
+                {editingId && (
+                  <button type="button" className="text-btn" onClick={resetForm}>
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </article>
         )}
 
         <article className="products-panel">
+          <div className="panel-top">
+            <h2>Product List</h2>
+            <p>{filteredProducts.length} visible • Role: {currentRole}</p>
+          </div>
+
+          {!isAdmin && apiError && <p className="error-line">{apiError}</p>}
+          {apiError && (
+            <button className="text-btn" type="button" onClick={loadProducts}>
+              Retry Loading Products
+            </button>
+          )}
 
           <div className="filters-row">
-            <input placeholder="Search..." onChange={e => setSearch(e.target.value)} />
-            <label>
-              <input type="checkbox" onChange={e => setEcoOnly(e.target.checked)} />
-              Eco Only
+            <input
+              placeholder="Search by name, category, seller..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <label className="inline-check">
+              <input
+                type="checkbox"
+                checked={ecoOnly}
+                onChange={e => setEcoOnly(e.target.checked)}
+              />
+              Eco only
             </label>
-            <select onChange={e => setCarbonFilter(e.target.value)}>
-              {CARBON_FILTERS.map(f => <option key={f} value={f}>{f}</option>)}
+            <select value={carbonFilter} onChange={e => setCarbonFilter(e.target.value)}>
+              {CARBON_FILTERS.map(filter => (
+                <option key={filter} value={filter}>
+                  {filter}
+                </option>
+              ))}
             </select>
           </div>
 
-          {loading && <p>Loading...</p>}
+          {loading && (
+            <div className="skeleton-grid" aria-label="Loading products">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="skeleton-card" />
+              ))}
+            </div>
+          )}
 
           <div className="product-grid">
-            {filteredProducts.map(p => {
-              const rating = getEcoRating(p?.carbonData?.totalCO2ePerKg || 0);
+            {pagedProducts.map(p => {
+              const totalCO2 = Number(p?.carbonData?.totalCO2ePerKg || 0);
+              const rating = getEcoRating(totalCO2);
               return (
-                <div key={p.id} className="product-card">
-                  <img src={p.image} alt={p.name} />
-                  <h3>{p.name} <span>{rating.label}</span></h3>
-                  <p>${p.price}</p>
+                <article key={p.id} className="product-card">
+                  <img
+                    src={p.image || "https://via.placeholder.com/600x400?text=EcoBazaar"}
+                    alt={p.name}
+                    loading="lazy"
+                    onError={e => {
+                      e.currentTarget.src = "https://via.placeholder.com/600x400?text=EcoBazaar";
+                    }}
+                  />
+                  <div className="product-body">
+                    <div className="card-head">
+                      <h3>{p.name}</h3>
+                      <span className={`badge badge-${rating.tone}`}>{rating.label}</span>
+                    </div>
+                    <p className="meta-line">
+                      {(p.category || "General") + " • " + (p.seller || "EcoBazaar Seller")}
+                    </p>
+                    <p className="description-line">
+                      {p.description || "No description available."}
+                    </p>
+                    <div className="stats-row">
+                      <strong>${Number(p.price || 0).toFixed(2)}</strong>
+                      <span>{totalCO2.toFixed(2)} kg CO2e</span>
+                    </div>
 
-                  <div className="card-actions">
-                    <Link to={`/products/${p.id}`}>View Impact</Link>
-                    {isAdmin && (
-                      <>
-                        <button onClick={() => onEdit(p)}>Edit</button>
-                        <button onClick={() => onDelete(p.id)} disabled={deletingId === p.id}>
-                          Delete
-                        </button>
-                      </>
-                    )}
+                    <div className="card-actions">
+                      <Link className="link-btn" to={`/products/${p.id}`}>
+                        View Impact
+                      </Link>
+                      <button
+                        className="text-btn"
+                        onClick={() => {
+                          addToCart(p, 1);
+                          showToast(`${p.name} added to cart.`, "success");
+                        }}
+                      >
+                        Add to Cart
+                      </button>
+                      {isAdmin && (
+                        <>
+                          <button className="text-btn" onClick={() => onEdit(p)}>
+                            Edit
+                          </button>
+                          <button
+                            className="text-btn danger"
+                            onClick={() => onDelete(p.id)}
+                            disabled={deletingId === p.id}
+                          >
+                            {deletingId === p.id ? "Deleting..." : "Delete"}
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
-
+          {!loading && totalPages > 1 && (
+            <div className="pagination-row">
+              <button
+                className="text-btn"
+                type="button"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </button>
+              <p>
+                Page {page} of {totalPages}
+              </p>
+              <button
+                className="text-btn"
+                type="button"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </article>
-
       </section>
     </main>
   );
