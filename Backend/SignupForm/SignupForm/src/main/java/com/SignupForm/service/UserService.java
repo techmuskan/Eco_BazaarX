@@ -1,10 +1,12 @@
 package com.SignupForm.service;
 
-import com.SignupForm.entity.Role;
+import com.SignupForm.dto.auth.LoginRequest;
+import com.SignupForm.enums.Role;
 import com.SignupForm.entity.Users;
-import com.SignupForm.repository.UsersRepo;
-import com.SignupForm.requests.LoginRequest;
+import com.SignupForm.repository.UserRepository;
+import com.SignupForm.dto.auth.LoginRequest;
 import com.SignupForm.security.JwtUtil;
+import jakarta.validation.Valid;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +17,12 @@ import java.util.Random;
 @Service
 public class UserService {
 
-    private final UsersRepo usersRepo;
+    private final UserRepository usersRepo;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
 
-    public UserService(UsersRepo usersRepo,
+    public UserService(UserRepository usersRepo,
                        BCryptPasswordEncoder passwordEncoder,
                        EmailService emailService,
                        JwtUtil jwtUtil) {
@@ -28,6 +30,27 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.jwtUtil = jwtUtil;
+    }
+
+    // ================= GET PROFILE =================
+    public Users getByEmail(String email) {
+        return usersRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // ================= UPDATE PROFILE =================
+    public Users updateProfile(String email, Users updated) {
+
+        Users user = usersRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (updated.getName() != null)
+            user.setName(updated.getName());
+
+        if (updated.getPhone() != null)
+            user.setPhone(updated.getPhone());
+
+        return usersRepo.save(user);
     }
 
     // ================= SIGNUP =================
@@ -44,13 +67,16 @@ public class UserService {
 
         // Encode password before saving
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(Role.USER);
+
+        // Ensure role is set (fallback safety)
+        if (user.getRole() == null)
+            user.setRole(Role.USER);
 
         return usersRepo.save(user);
     }
 
     // ================= LOGIN =================
-    public String loginUser(LoginRequest loginRequest) {
+    public String loginUser(@Valid @org.jetbrains.annotations.UnknownNullability LoginRequest loginRequest) {
 
         if (loginRequest.getEmail() == null || loginRequest.getEmail().isEmpty())
             throw new RuntimeException("Email cannot be empty");
@@ -59,12 +85,11 @@ public class UserService {
             throw new RuntimeException("Password cannot be empty");
 
         Users user = usersRepo.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()))
             throw new RuntimeException("Invalid email or password");
 
-        // Generate JWT token
         return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
     }
 
@@ -78,57 +103,61 @@ public class UserService {
 
     // ================= FORGOT PASSWORD =================
     public String forgotPassword(String email) {
+
         if (email == null || email.isEmpty())
-            return "Email cannot be empty";
+            throw new RuntimeException("Email cannot be empty");
 
-        Optional<Users> userOpt = usersRepo.findByEmail(email);
-        if (userOpt.isEmpty()) return "User not found";
+        Users user = usersRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Users user = userOpt.get();
         String otp = generateOtp();
+
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
         usersRepo.save(user);
 
         emailService.sendOtpEmail(email, otp);
+
         return "OTP sent to email successfully";
     }
 
     // ================= RESET PASSWORD =================
     public String resetPassword(String email, String otp, String newPassword) {
+
         if (email == null || email.isEmpty())
-            return "Email cannot be empty";
+            throw new RuntimeException("Email cannot be empty");
 
         if (newPassword == null || newPassword.isEmpty())
-            return "New password cannot be empty";
+            throw new RuntimeException("New password cannot be empty");
 
-        Optional<Users> userOpt = usersRepo.findByEmail(email);
-        if (userOpt.isEmpty()) return "User not found";
-
-        Users user = userOpt.get();
+        Users user = usersRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (user.getOtp() == null || user.getOtpExpiry() == null)
-            return "No OTP requested";
+            throw new RuntimeException("No OTP requested");
 
-        if (!user.getOtp().equals(otp)) return "Invalid OTP";
-        if (user.getOtpExpiry().isBefore(LocalDateTime.now())) return "OTP expired";
+        if (!user.getOtp().equals(otp))
+            throw new RuntimeException("Invalid OTP");
+
+        if (user.getOtpExpiry().isBefore(LocalDateTime.now()))
+            throw new RuntimeException("OTP expired");
 
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setOtp(null);
         user.setOtpExpiry(null);
 
         usersRepo.save(user);
+
         return "Password reset successful";
     }
 
-    // ================= HELPER =================
-    private String generateOtp() {
-        return String.valueOf(new Random().nextInt(900000) + 100000);
-    }
-
-    // In UserService
+    // ================= GENERATE JWT =================
     public String generateTokenForUser(Users user) {
         return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
     }
 
+    // ================= HELPER =================
+    private String generateOtp() {
+        return String.valueOf(100000 + new Random().nextInt(900000));
+    }
 }

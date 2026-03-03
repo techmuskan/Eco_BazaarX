@@ -1,5 +1,6 @@
 package com.SignupForm.entity;
 
+import com.SignupForm.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;

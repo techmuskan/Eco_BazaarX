@@ -1,11 +1,13 @@
-package com.SignupForm.requests;
+package com.SignupForm.dto.auth;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
-public class SignupRequest {
+@NoArgsConstructor
+@AllArgsConstructor
+public class RegisterRequest {
+
     private String name;
     private String email;
     private String password;

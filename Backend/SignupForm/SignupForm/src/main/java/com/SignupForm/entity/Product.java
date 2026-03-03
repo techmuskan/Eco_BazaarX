@@ -22,7 +22,7 @@ public class Product {
 
     private String seller;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
     private Double price;
 
     // Stores Cloudinary URL
@@ -48,4 +48,7 @@ public class Product {
     @Lob
     @Column(name = "image_data", columnDefinition = "LONGBLOB")
     private byte[] imageData;
+
+    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
+    private Double emission;
 }

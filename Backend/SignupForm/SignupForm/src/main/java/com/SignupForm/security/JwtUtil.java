@@ -18,7 +18,7 @@ public class JwtUtil {
             "mysupersecretkeymysupersecretkey123456";
 
     private static final long EXPIRATION_TIME =
-            1000 * 60 * 60; // 1 hour
+            1000 * 60 * 60 * 2; // 2 hour
 
     private Key getSignKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());

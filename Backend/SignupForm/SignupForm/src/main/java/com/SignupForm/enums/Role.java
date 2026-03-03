@@ -1,4 +1,4 @@
-package com.SignupForm.entity;
+package com.SignupForm.enums;
 
 public enum Role {
    USER,

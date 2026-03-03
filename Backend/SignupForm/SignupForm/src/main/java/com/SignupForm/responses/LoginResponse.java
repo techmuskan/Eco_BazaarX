@@ -1,15 +1,14 @@
 package com.SignupForm.responses;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * LoginResponse contains JWT token and user info
- */
-@Getter
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class LoginResponse {
 
     private String token;
-    private UserResponse user;  // include user info in response
+    private UserResponse user;
 }

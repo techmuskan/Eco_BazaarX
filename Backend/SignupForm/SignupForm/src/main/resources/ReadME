@@ -1,0 +1,100 @@
+eco-shop-backend
+│
+├── src/main/java/com/SignupForm
+│   │
+│   ├── EcoShopApplication.java
+│   │
+│   ├── security
+│   │   ├── SecurityConfig.java
+│   │   ├── JwtFilter.java
+│   │   ├── JwtUtil.java
+│   │   ├── PasswordConfig.java
+│   │   └── OpenApiConfig.java (optional)
+│   │
+│   ├── controller
+│   │   ├── AuthController.java
+│   │   ├── UserController.java
+│   │   ├── ProductController.java
+│   │   ├── CartController.java
+│   │   ├── OrderController.java
+│   │   ├── RecommendationController.java
+│   │   └── AdminController.java
+│   │
+│   ├── service
+│   │   ├── AuthService.java
+│   │   ├── UserService.java
+│   │   ├── ProductService.java
+│   │   ├── CartService.java
+│   │   ├── OrderService.java
+│   │   ├── RecommendationService.java
+│   │   └── CarbonCalculationService.java
+│   │
+│   ├── repository
+│   │   ├── UserRepository.java
+│   │   ├── RoleRepository.java
+│   │   ├── ProductRepository.java
+│   │   ├── CarbonDataRepository.java
+│   │   ├── CartRepository.java
+│   │   ├── CartItemRepository.java
+│   │   ├── OrderRepository.java
+│   │   ├── OrderItemRepository.java
+│   │   ├── AddressRepository.java
+│   │   └── ShippingRepository.java
+│   │
+│   ├── entity
+│   │   ├── Users.java
+│   │   ├── Role.java
+│   │   ├── Product.java
+│   │   ├── CarbonData.java
+│   │   ├── Cart.java
+│   │   ├── CartItem.java
+│   │   ├── Order.java
+│   │   ├── OrderItem.java
+│   │   ├── Address.java
+│   │   └── Shipping.java
+│   │
+│   ├── dto
+│   │   ├── auth
+│   │   │   ├── LoginRequest.java
+│   │   │   ├── RegisterRequest.java
+│   │   │   ├── AuthResponse.java
+│   │   │
+│   │   ├── cart
+│   │   │   ├── AddToCartRequest.java
+│   │   │   ├── CartResponse.java
+│   │   │
+│   │   ├── order
+│   │   │   ├── CheckoutRequest.java
+│   │   │   ├── OrderItemResponse.java
+│   │   │   ├── OrderResponse.java
+│   │   │
+│   │   ├── recommendation
+│   │   │   ├── RecommendationRequest.java
+│   │   │   ├── RecommendationResponse.java
+│   │   │
+│   │   └── product
+│   │       ├── ProductRequest.java
+│   │       ├── ProductResponse.java
+│   │
+│   ├── exception
+│   │   ├── GlobalExceptionHandler.java
+│   │   ├── ResourceNotFoundException.java
+│   │   ├── UnauthorizedException.java
+│   │   └── BadRequestException.java
+│   │
+│   ├── util
+│   │   ├── AppConstants.java
+│   │   ├── OrderIdGenerator.java
+│   │   └── ScoreCalculator.java
+│   │
+│   └── enums
+│       ├── Role.java
+│       ├── OrderStatus.java
+│       └── PaymentMethod.java
+│
+├── src/main/resources
+│   ├── application.yml
+│   ├── data.sql (optional)
+│   └── schema.sql (optional)
+│
+└── pom.xml
