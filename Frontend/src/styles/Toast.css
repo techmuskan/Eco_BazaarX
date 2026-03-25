@@ -1,6 +1,6 @@
 .toast-stack {
   position: fixed;
-  top: 18px;
+  top: 75px;
   right: 18px;
   z-index: 1200;
   display: grid;

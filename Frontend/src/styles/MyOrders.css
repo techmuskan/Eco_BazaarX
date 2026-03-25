@@ -1,175 +1,218 @@
+/* ================= PAGE WRAPPER ================= */
 .orders-page-wrapper {
-  background: #f1f3f6;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f5f6fa;
   min-height: 100vh;
-  padding-bottom: 40px;
 }
 
+/* ================= MAIN CONTENT ================= */
 .orders-content {
-  max-width: 980px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px 16px 40px;
+  padding: 30px 20px;
 }
 
+/* ================= PAGE TITLE ================= */
 .page-title {
-  margin: 12px 0 18px;
-  font-size: 22px;
+  font-size: 2rem;
   font-weight: 600;
+  margin-bottom: 20px;
+  color: #2c3e50;
 }
 
+/* ================= STATE MESSAGES ================= */
 .state-msg {
-  background: #fff;
-  border-radius: 8px;
-  padding: 36px;
-  text-align: center;
-  color: #6b7280;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 60px;
+  color: #7f8c8d;
 }
 
 .state-msg .loader {
-  margin: 0 auto 12px;
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #2ecc71;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
 }
 
-.empty-state img {
-  max-width: 220px;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-state img.empty-img {
+  width: 200px;
+  margin-bottom: 20px;
 }
 
 .shop-now-btn {
-  margin-top: 16px;
-  background: #2874f0;
-  color: #fff;
+  background-color: #2ecc71;
+  color: white;
   border: none;
-  padding: 10px 18px;
-  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 6px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
+.shop-now-btn:hover {
+  background-color: #27ae60;
+}
+
+/* ================= ORDERS LIST ================= */
 .orders-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
 }
 
+/* ================= ORDER CARD ================= */
 .order-card {
-  background: #fff;
-  border: 1px solid #e8eaef;
+  background-color: white;
   border-radius: 10px;
-  padding: 16px 18px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
 }
 
+.order-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ================= ORDER CARD HEADER ================= */
 .order-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.order-id-group {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
+  margin-bottom: 15px;
 }
 
 .order-id-group .label {
-  font-size: 12px;
-  color: #6b7280;
-  letter-spacing: 0.3px;
+  font-weight: 500;
+  color: #7f8c8d;
 }
 
 .order-id-group .id-value {
   font-weight: 600;
-  color: #111827;
+  margin-left: 5px;
+  color: #2c3e50;
 }
 
 .status-pill {
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  background: #fff3cd;
-  color: #9a6a00;
-  border: 1px solid #ffe8a1;
+  font-size: 0.8rem;
+  color: white;
 }
 
-.status-pill.completed,
-.status-pill.delivered {
-  background: #e7f8ee;
-  color: #1b7f3d;
-  border-color: #c8efd7;
-}
+/* Status colors */
+.status-pill.processing { background-color: #f39c12; }
+.status-pill.ordered { background-color: #3498db; }
+.status-pill.delivered { background-color: #2ecc71; }
+.status-pill.cancelled { background-color: #e74c3c; }
 
-.status-pill.cancelled,
-.status-pill.failed {
-  background: #fee2e2;
-  color: #b91c1c;
-  border-color: #fecaca;
-}
-
+/* ================= ORDER BODY ================= */
 .order-body {
-  padding: 12px 0 6px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
+  border-top: 1px solid #ecf0f1;
+  border-bottom: 1px solid #ecf0f1;
+  padding: 15px 0;
 }
 
 .order-item-row {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr 0.6fr;
-  gap: 12px;
+  display: flex;
+  gap: 15px;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px dashed #eef0f3;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  padding: 0px 10px;
+  border-radius: 8px;
 }
 
-.order-item-row:last-child {
-  border-bottom: none;
+.order-item-row:hover {
+  background-color: #f1f2f6;
 }
 
-.item-main-info p {
+.item-image img.item-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  /* gap: 5px; */
+  flex: 1;
+}
+
+.item-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.item-qty,
+.item-price,
+.item-subtotal {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+/* ================= ORDER CARD FOOTER ================= */
+.order-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  font-size: 0.95rem;
+}
+
+.footer-summary p {
   margin: 0;
-  font-size: 13px;
-  color: #374151;
+  font-weight: 500;
+}
+
+.footer-summary strong {
+  color: #2c3e50;
+  font-size: 1rem;
 }
 
 .order-date {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: 0.85rem;
+  color: #95a5a6;
 }
 
-.item-price p {
-  margin: 0;
-  font-weight: 600;
-  color: #111827;
-  text-align: right;
-}
-
-.order-card-footer {
-  padding-top: 8px;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.order-total-summary strong {
-  font-size: 16px;
-  color: #111827;
-}
-
-@media (max-width: 800px) {
-  .order-item-row {
-    grid-template-columns: 1fr;
-  }
-
-  .item-price p {
-    text-align: left;
-  }
-
-  .order-card-header {
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .order-card-header,
+  .order-card-footer {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
+  }
+
+  .order-item-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .item-image img.item-img {
+    width: 100%;
+    max-width: 120px;
+    height: auto;
   }
 }

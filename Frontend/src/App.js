@@ -83,7 +83,8 @@ function App() {
             {/* --- General Protected Routes --- */}
             <Route path="/dashboard" element={<ProtectedRoute user={user}><Dashboard user={user} onLogout={handleLogout} /></ProtectedRoute>} />
             <Route path="/products" element={<ProtectedRoute user={user}><ProductCatalog user={user} /></ProtectedRoute>} />
-            <Route path="/products/:id" element={<ProtectedRoute user={user}><ProductDetail /></ProtectedRoute>} />
+            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
 
             {/* --- Admin Product Management --- */}
             <Route path="/add-product" element={<ProtectedRoute user={user} adminOnly={true}><AddProduct /></ProtectedRoute>} />

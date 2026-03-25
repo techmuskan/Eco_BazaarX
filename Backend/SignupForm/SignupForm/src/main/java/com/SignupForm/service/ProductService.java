@@ -32,6 +32,14 @@ public class ProductService {
     }
 
     public List<Product> search(String keyword) {
-        return productRepo.searchProducts(keyword);
+        // New code matching your updated Repository
+        // Fixed: Matches the new method name in Repo
+        return productRepo.searchApprovedProducts(keyword);
+    }
+    public List<Product> getPendingVerifications() {
+        // Finds products that are NOT YET marked eco-friendly but have carbon data
+        return productRepo.findAll().stream()
+                .filter(p -> p.getIsEcoFriendly() == null || !p.getIsEcoFriendly())
+                .toList();
     }
 }

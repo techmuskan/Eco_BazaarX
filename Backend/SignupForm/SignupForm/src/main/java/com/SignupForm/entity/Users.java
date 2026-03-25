@@ -50,4 +50,6 @@ public class Users {
 
     @JsonIgnore
     private LocalDateTime otpExpiry;
+
+    private Boolean isVerified = false;
 }

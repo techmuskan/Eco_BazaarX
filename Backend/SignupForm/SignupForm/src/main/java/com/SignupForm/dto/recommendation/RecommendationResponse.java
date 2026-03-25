@@ -12,7 +12,12 @@ public class RecommendationResponse {
     private Long productId;
     private String productName;
     private Double price;
+
     private Double ecoScore;
     private Double carbonFootprint;
+
     private Double score;
+
+    // ✅ ADD THIS (important for frontend UI)
+    private String image;
 }

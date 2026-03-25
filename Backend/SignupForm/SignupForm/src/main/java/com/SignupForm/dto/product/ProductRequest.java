@@ -16,7 +16,7 @@ public class ProductRequest {
     private String image;
     private String description;
     private Boolean isEcoFriendly;
-
+    private String status;
     // Flattened fields for easier React handling
     private Double manufacturing;
     private Double packaging;

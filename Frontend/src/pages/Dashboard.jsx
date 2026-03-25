@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { logout, getStoredUser } from "../services/authService";
+import { getStoredUser } from "../services/authService";
 import "../styles/Dashboard.css";
 
 function Dashboard({ onLogout }) {
@@ -12,18 +12,14 @@ function Dashboard({ onLogout }) {
   const { totalItems, items = [] } = useCart();
   const [showProfile, setShowProfile] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    onLogout();
-    navigate("/login");
-  };
+
 
   if (!user) return <div className="loading">Loading...</div>;
 
   return (
     <>
       {/* Navbar */}
-      <MainNavbar onLogout={handleLogout} />
+     <MainNavbar onLogout={onLogout} />
 
       {/* Dashboard Content with Background Image Link */}
       <div className="dashboard-container">

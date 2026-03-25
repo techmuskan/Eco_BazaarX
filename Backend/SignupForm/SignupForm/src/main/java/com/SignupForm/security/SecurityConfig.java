@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/product/**").permitAll()
                         .requestMatchers("/error").permitAll()
-
+                        .requestMatchers("/api/recommendations/**").permitAll()
                         // 3. Admin-Only Product Management
                         .requestMatchers(HttpMethod.POST, "/api/product/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("ADMIN")
@@ -60,6 +60,7 @@ public class SecurityConfig {
                                 "/api/addresses/**",
                                 "/api/wishlist/**",
                                 "/api/insights/user/**"
+
                         ).hasAnyRole("USER", "ADMIN")
 
                         // 5. Catch-all

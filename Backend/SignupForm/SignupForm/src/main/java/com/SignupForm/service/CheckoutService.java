@@ -75,6 +75,7 @@ public class CheckoutService {
                 .build();
 
         List<OrderItem> orderItems = new ArrayList<>();
+        // --- CALCULATE SUBTOTAL AND EMISSION ---
         double subtotal = 0.0;
         double totalEmission = 0.0;
 
@@ -103,12 +104,19 @@ public class CheckoutService {
             orderItems.add(orderItem);
         }
 
-        // Logic for Flipkart-style shipping (Free over 500)
-        double shipping = subtotal > 500 ? 0.0 : 40.0;
+// --- INITIAL TOTAL WITHOUT SHIPPING ---
+        double totalAmount = subtotal;
 
-        order.setTotalAmount(subtotal + shipping);
-        order.setTotalEmission(totalEmission);
+// --- SHIPPING LOGIC BASED ON TOTAL AMOUNT ---
+        double shipping = 0.0;
+        if (totalAmount < 500) {
+            shipping = 40.0;   // ✅ Add Rs 40 if final total < 500
+            totalAmount += shipping;
+        }
+
         order.setShipping(shipping);
+        order.setTotalAmount(totalAmount);
+        order.setTotalEmission(totalEmission);
         order.setOrderItems(orderItems);
 
         Order savedOrder = orderRepository.save(order);
@@ -138,6 +146,17 @@ public class CheckoutService {
         List<OrderItemResponse> itemResponses = new ArrayList<>();
 
         for (OrderItem oi : order.getOrderItems()) {
+
+            String productImage = null;
+            if (oi.getProduct() != null && oi.getProduct().getImage() != null) {
+                String img = oi.getProduct().getImage();
+                // Only prepend backend URL if the image path is relative
+                if (img.startsWith("http")) {
+                    productImage = img; // already a full URL
+                } else {
+                    productImage = "http://localhost:8080" + img; // relative path
+                }
+            }
             itemResponses.add(OrderItemResponse.builder()
                     .productId(oi.getProductId())
                     .productName(oi.getProductName())
@@ -145,6 +164,7 @@ public class CheckoutService {
                     .price(oi.getPrice())
                     .subtotal(oi.getSubtotal())
                     .emission(oi.getEmission())
+                    .image(productImage)
                     .build());
         }
 

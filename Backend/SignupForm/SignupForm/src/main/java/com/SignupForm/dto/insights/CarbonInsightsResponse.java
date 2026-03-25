@@ -29,5 +29,6 @@ public class CarbonInsightsResponse {
         private Long id;
         private String name;
         private Double emission;
+        private String image;
     }
 }

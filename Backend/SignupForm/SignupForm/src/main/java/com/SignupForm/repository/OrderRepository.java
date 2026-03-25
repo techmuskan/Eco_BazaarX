@@ -14,7 +14,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     // For User Dashboard: Fetch orders by User object
     List<Order> findByUser(Users user);
-
+    List<Order> findTop20ByOrderByOrderDateDesc();
     // For Module 4: Get total carbon saved by a specific user (for Badges)
     @Query("SELECT SUM(o.totalEmission) FROM Order o WHERE o.email = :email")
     Double getTotalEmissionByEmail(@Param("email") String email);

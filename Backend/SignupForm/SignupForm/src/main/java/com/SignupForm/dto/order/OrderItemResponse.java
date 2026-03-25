@@ -14,5 +14,6 @@ public class OrderItemResponse {
     private Integer quantity;
     private Double price;
     private Double subtotal;   // price * quantity
-    private Double emission;   // CO2 estimate
+    private Double emission;
+    private String image;
 }

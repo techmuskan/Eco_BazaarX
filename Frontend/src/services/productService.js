@@ -102,3 +102,19 @@ export async function deleteProduct(id) {
     handleError(error, "Failed to delete product");
   }
 }
+
+// src/services/productService.js
+
+/**
+ * UPDATE PRODUCT STATUS & ECO-DATA (ADMIN)
+ * This hits the /api/admin/products/{id}/status endpoint
+ */
+export async function updateProductStatus(id, statusData) {
+  try {
+    // We use 'api' instead of 'fetch' to keep the interceptors and headers consistent
+    const res = await api.put(`/admin/products/${id}/status`, statusData);
+    return res.data;
+  } catch (error) {
+    handleError(error, "Failed to update product status and carbon data");
+  }
+}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { logout, getStoredUser } from "../services/authService";
+
 import "../styles/MainNavbar.css";
 
 function MainNavbar({ onLogout }) {
@@ -15,12 +16,16 @@ function MainNavbar({ onLogout }) {
 
   const isActive = (path) => location.pathname === path;
 
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();   // App.js state update
-    }
-    navigate("/login");
-  };
+ const handleLogout = () => {
+  logout(); // ✅ always clear token
+
+  if (onLogout) {
+    onLogout(); // update App state
+  }
+
+  navigate("/login");
+   window.location.reload(); 
+};
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);

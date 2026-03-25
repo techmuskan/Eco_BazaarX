@@ -3,8 +3,7 @@ package com.SignupForm.controller;
 import com.SignupForm.service.InsightsService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,16 +17,29 @@ public class InsightsController {
 
     private final InsightsService insightsService;
 
-    // Requirement 4: User Dashboard
+    // ✅ USER INSIGHTS (SECURED)
     @GetMapping("/user")
+    @PreAuthorize("isAuthenticated()") // 🔥 IMPORTANT
     public ResponseEntity<?> getUserInsights(Principal principal) {
-        return ResponseEntity.ok(insightsService.getInsightsData(principal.getName()));
+
+        if (principal == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        String email = principal.getName(); // comes from JWT
+
+        return ResponseEntity.ok(
+                insightsService.getInsightsData(email)
+        );
     }
 
-    // Requirement 5: Admin Management
+    // ✅ ADMIN REPORT (ROLE BASED)
     @GetMapping("/admin/report")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAdminReport() {
-        return ResponseEntity.ok(insightsService.getAdminGlobalReport());
+
+        return ResponseEntity.ok(
+                insightsService.getAdminGlobalReport()
+        );
     }
 }

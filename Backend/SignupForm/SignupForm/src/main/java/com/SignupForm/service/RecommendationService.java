@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,19 +24,19 @@ public class RecommendationService {
         Product selectedProduct = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // 2️⃣ Find alternatives in same category but different ID
+        // 2️⃣ Find alternatives (same category, exclude current)
         List<Product> alternatives = productRepository
                 .findByCategoryAndIdNot(
                         selectedProduct.getCategory(),
                         selectedProduct.getId()
                 );
 
-        // 3️⃣ Convert to response
+        // 3️⃣ Convert + sort + limit
         return alternatives.stream()
                 .map(product -> buildRecommendation(selectedProduct, product))
                 .sorted(Comparator.comparing(RecommendationResponse::getScore).reversed())
                 .limit(6)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // ================= BUILD RESPONSE =================
@@ -46,7 +45,8 @@ public class RecommendationService {
         double score = calculateScore(original, alternative);
 
         Double carbonValue = null;
-        if (alternative.getCarbonData() != null) {
+        if (alternative.getCarbonData() != null &&
+                alternative.getCarbonData().getTotalCO2ePerKg() != null) {
             carbonValue = alternative.getCarbonData().getTotalCO2ePerKg();
         }
 
@@ -54,9 +54,11 @@ public class RecommendationService {
                 .productId(alternative.getId())
                 .productName(alternative.getName())
                 .price(alternative.getPrice())
+                .image(alternative.getImage())
                 .ecoScore(Boolean.TRUE.equals(alternative.getIsEcoFriendly()) ? 1.0 : 0.0)
                 .carbonFootprint(carbonValue)
                 .score(score)
+                .image(alternative.getImage()) // ✅ IMPORTANT (frontend image)
                 .build();
     }
 
@@ -69,14 +71,17 @@ public class RecommendationService {
         if (alternative.getCarbonData() != null &&
                 alternative.getCarbonData().getTotalCO2ePerKg() != null) {
 
-            // Lower carbon = higher score
-            carbonScore = Math.max(0, 50 - alternative.getCarbonData().getTotalCO2ePerKg());
+            double carbon = alternative.getCarbonData().getTotalCO2ePerKg();
+
+            // ✅ safer logic (prevents negative)
+            carbonScore = Math.max(0, 50 - carbon);
         }
 
         double priceScore = 0;
         if (original.getPrice() != null &&
                 alternative.getPrice() != null &&
-                original.getPrice() > alternative.getPrice()) {
+                alternative.getPrice() < original.getPrice()) {
+
             priceScore = 30;
         }
 

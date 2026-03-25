@@ -39,7 +39,7 @@ function CartPage() {
       </div>
     );
 
-  const shipping = subtotal > 1000 ? 0 : 50;
+  const shipping = subtotal > 500 ? 0 : 40;
   const total = subtotal + shipping;
 
   return (

@@ -10,4 +10,5 @@ import lombok.*;
 public class RecommendationRequest {
 
     private Long productId;
+
 }

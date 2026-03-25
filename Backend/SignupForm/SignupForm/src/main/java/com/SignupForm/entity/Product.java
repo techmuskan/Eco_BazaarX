@@ -3,6 +3,8 @@ package com.SignupForm.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -51,4 +53,10 @@ public class Product {
 
     @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
     private Double emission;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(nullable = false)
+    private String status = "Hold";
 }

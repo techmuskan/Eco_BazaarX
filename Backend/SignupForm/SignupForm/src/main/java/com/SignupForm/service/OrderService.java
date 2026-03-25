@@ -171,6 +171,16 @@ public class OrderService {
 
         if (order.getOrderItems() != null) {
             for (OrderItem oi : order.getOrderItems()) {
+                String productImage = null;
+                if (oi.getProduct() != null && oi.getProduct().getImage() != null) {
+                    String img = oi.getProduct().getImage();
+                    // Only prepend backend URL if the image path is relative
+                    if (img.startsWith("http")) {
+                        productImage = img; // already a full URL
+                    } else {
+                        productImage = "http://localhost:8080" + img; // relative path
+                    }
+                }
 
                 itemResponses.add(OrderItemResponse.builder()
                         .productId(oi.getProductId())
@@ -179,6 +189,7 @@ public class OrderService {
                         .price(oi.getPrice())
                         .subtotal(oi.getSubtotal())
                         .emission(oi.getEmission())
+                        .image(productImage) // ✅ Include image
                         .build());
             }
         }
