@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; // ✅ added
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { getStoredUser } from "../services/authService";
 import { fetchUserInsights, fetchAdminAnalytics } from "../services/insightsService"; 
+import { getDashboardPathForRole } from "../utils/roleAccess";
 import "../styles/CarbonInsights.css";
 
 // SVG Line Path Helper - Fixed to handle dynamic backend values
@@ -103,6 +105,7 @@ function CarbonInsights() {
     <>
       <MainNavbar />
       <div className="insights-page">
+        <BackButton fallbackTo={getDashboardPathForRole(user?.role)} label="Back" className="insights-back-button" />
         <section className="insights-hero">
           <div className="insights-hero-content">
             <p className="hero-tag">Carbon Insights</p>

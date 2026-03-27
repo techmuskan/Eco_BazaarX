@@ -16,6 +16,7 @@ import OrderSuccess from "./pages/OrderSuccess";
 import MyOrders from "./pages/MyOrders";
 import WishlistPage from "./pages/WishlistPage";
 import CarbonInsights from "./pages/CarbonInsights";
+import AccountProfile from "./pages/AccountProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminManagement from "./pages/AdminManagement";
 import AdminCatalog from "./pages/AdminCatalog";
@@ -39,6 +40,7 @@ import {
   getOrdersPathForRole,
   getCartPathForRole,
   getWishlistPathForRole,
+  getAccountPathForRole,
 } from "./utils/roleAccess";
 
 function App() {
@@ -167,6 +169,9 @@ function App() {
             <Route path="/user/orders" element={<ProtectedRoute user={user} allowedRoles={["USER"]}><MyOrders /></ProtectedRoute>} />
             <Route path="/user/wishlist" element={<ProtectedRoute user={user} allowedRoles={["USER"]}><WishlistPage /></ProtectedRoute>} />
             <Route path="/user/insights" element={<ProtectedRoute user={user} allowedRoles={["USER"]}><CarbonInsights user={user} /></ProtectedRoute>} />
+            <Route path="/user/account" element={<ProtectedRoute user={user} allowedRoles={["USER"]}><AccountProfile user={user} /></ProtectedRoute>} />
+            <Route path="/seller/account" element={<ProtectedRoute user={user} allowedRoles={["SELLER"]}><AccountProfile user={user} /></ProtectedRoute>} />
+            <Route path="/admin/account" element={<ProtectedRoute user={user} allowedRoles={["ADMIN"]}><AccountProfile user={user} /></ProtectedRoute>} />
 
             {/* --- Admin Views --- */}
             <Route path="/admin/management" element={<ProtectedRoute user={user} allowedRoles={["ADMIN"]}><AdminManagement user={user} /></ProtectedRoute>} />
@@ -181,6 +186,7 @@ function App() {
             <Route path="/wishlist" element={<ProtectedRoute user={user} allowedRoles={["USER"]}><Navigate to={getWishlistPathForRole()} replace /></ProtectedRoute>} />
             <Route path="/insights" element={<ProtectedRoute user={user} allowedRoles={["USER"]}><Navigate to={getInsightsPathForRole()} replace /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute user={user} allowedRoles={["ADMIN"]}><Navigate to={getDashboardPathForRole("ADMIN")} replace /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute user={user}><Navigate to={getAccountPathForRole(user?.role)} replace /></ProtectedRoute>} />
 
             {/* --- Default Redirect --- */}
             <Route path="*" element={<Navigate to={user ? getDashboardPathForRole(user.role) : "/login"} replace />} />

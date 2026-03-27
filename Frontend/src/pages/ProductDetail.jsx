@@ -4,6 +4,7 @@ import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { useWishlist } from "../context/WishlistContext";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { getProductById } from "../services/productService";
 import { getRecommendations } from "../services/recommendationService";
 import { getStoredUser } from "../services/authService";
@@ -14,6 +15,7 @@ import {
   getEmissionBand,
   getLeadingCarbonStage,
 } from "../utils/sustainability";
+import { getCatalogPathForRole } from "../utils/roleAccess";
 import "../styles/ProductDetail.css";
 
 function ProductDetail() {
@@ -23,6 +25,7 @@ function ProductDetail() {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const currentUser = getStoredUser();
   const isBuyer = currentUser?.role === "USER";
+  const catalogPath = getCatalogPathForRole(currentUser?.role);
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,6 +122,7 @@ function ProductDetail() {
       <div className="product-viewport">
         {/* Gallery */}
         <section className="product-gallery">
+          <BackButton fallbackTo={catalogPath} label="Back" className="detail-back-button" />
           <div className="main-image-wrapper">
             <img src={product.image} alt={product.name} className="hero-image" />
           </div>

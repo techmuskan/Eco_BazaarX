@@ -30,6 +30,7 @@ const Footer = ({ user }) => {
   const catalogPath = getCatalogPathForRole(user?.role);
   const isAdmin = user?.role === "ADMIN";
   const isSeller = user?.role === "SELLER";
+  const isGuest = !user;
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
@@ -55,7 +56,9 @@ const Footer = ({ user }) => {
         <div className="footer-brand">
           <p className="footer-title">EcoBazaarX</p>
           <span className="footer-subtitle">
-            Smarter shopping with sustainability visibility.
+            {isGuest
+              ? "A role-based marketplace for buyers, sellers, and admins."
+              : "Smarter shopping with sustainability visibility."}
           </span>
 
           {/* Social Icons */}
@@ -77,8 +80,11 @@ const Footer = ({ user }) => {
 
         {/* Links section */}
         <div className="footer-links">
-          <h4>Marketplace</h4>
-          <Link to={catalogPath}>Products</Link>
+          <h4>{isGuest ? "Explore" : "Marketplace"}</h4>
+          {isGuest && <Link to="/signup?role=USER">Join as Buyer</Link>}
+          {isGuest && <Link to="/signup?role=SELLER">Join as Seller</Link>}
+          {isGuest && <Link to="/login">Admin or Member Login</Link>}
+          {!isGuest && <Link to={catalogPath}>Products</Link>}
           {user && !isAdmin && !isSeller && <Link to={getCartPathForRole()}>Cart</Link>}
           {user && !isAdmin && !isSeller && <Link to={getWishlistPathForRole()}>Wishlist</Link>}
           {user && !isAdmin && !isSeller && <Link to={getCheckoutPathForRole()}>Checkout</Link>}
@@ -86,7 +92,7 @@ const Footer = ({ user }) => {
         </div>
 
         <div className="footer-links">
-          <h4>Account</h4>
+          <h4>{isGuest ? "Platform" : "Account"}</h4>
           {user ? (
             <>
               <Link to={dashboardPath}>Dashboard</Link>
@@ -99,16 +105,21 @@ const Footer = ({ user }) => {
             </>
           ) : (
             <>
-              <Link to="/login">Login</Link>
-              <Link to="/signup">Sign Up</Link>
+              <a href="/#platform">About Platform</a>
+              <a href="/#solutions">Role Workspaces</a>
+              <a href="/#workflow">How It Works</a>
             </>
           )}
         </div>
 
         {/* Newsletter */}
         <div className="footer-newsletter">
-          <h4>Join our newsletter</h4>
-          <p>Get updates about eco products & offers</p>
+          <h4>{isGuest ? "Get platform updates" : "Join our newsletter"}</h4>
+          <p>
+            {isGuest
+              ? "Get updates on new features, seller onboarding, and marketplace improvements."
+              : "Get updates about eco products & offers"}
+          </p>
           <form className="newsletter-box" onSubmit={handleSubscribe}>
             <input 
               type="email" 

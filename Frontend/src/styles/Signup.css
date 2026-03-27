@@ -75,6 +75,20 @@
   color: var(--text);
 }
 
+.signup-theme .auth-card .auth-back-button {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(26, 106, 65, 0.08);
+  color: var(--primary-strong);
+  border: 1px solid rgba(26, 106, 65, 0.12);
+  box-shadow: none;
+}
+
 .signup-theme .auth-sub {
   margin: 8px 0 18px;
   color: var(--text-soft);
@@ -108,6 +122,10 @@
   gap: 10px;
 }
 
+.signup-theme .password-field {
+  position: relative;
+}
+
 .signup-theme .auth-card input,
 .signup-theme .auth-card select {
   width: 100%;
@@ -116,6 +134,78 @@
   padding: 12px 13px;
   font-size: 14px;
   font-family: inherit;
+}
+
+.signup-theme .password-field input {
+  padding-right: 76px;
+}
+
+.signup-theme .password-field .password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--primary-strong);
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.signup-theme .password-field .password-toggle:hover {
+  background: rgba(26, 106, 65, 0.08);
+}
+
+.signup-theme .password-strength {
+  display: grid;
+  gap: 6px;
+  margin-top: -2px;
+}
+
+.signup-theme .password-strength p {
+  margin: 0;
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.signup-theme .strength-track {
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(26, 106, 65, 0.08);
+}
+
+.signup-theme .strength-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.signup-theme .strength-idle {
+  background: transparent;
+}
+
+.signup-theme .strength-weak {
+  background: #d64545;
+}
+
+.signup-theme .strength-medium {
+  background: #d9a323;
+}
+
+.signup-theme .strength-strong {
+  background: #2da65d;
 }
 
 .signup-theme .auth-card input:focus,

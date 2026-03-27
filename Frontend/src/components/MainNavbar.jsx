@@ -4,6 +4,7 @@ import { useCart } from "../context/CartContext";
 import { logout, getStoredUser } from "../services/authService";
 import {
   getAddProductPathForRole,
+  getAccountPathForRole,
   getAdminCatalogPath,
   getAdminDashboardPath,
   getAdminManagementPath,
@@ -28,9 +29,9 @@ function MainNavbar({ onLogout }) {
   const user = getStoredUser();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [showProfileDetails, setShowProfileDetails] = useState(false);
   const homePath = getDashboardPathForRole(user?.role);
   const catalogPath = getCatalogPathForRole(user?.role);
+  const accountPath = getAccountPathForRole(user?.role);
   const isAdmin = user?.role === "ADMIN";
   const isSeller = user?.role === "SELLER";
   const showShopperActions = !isAdmin && !isSeller;
@@ -50,7 +51,6 @@ function MainNavbar({ onLogout }) {
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
-    setTimeout(() => setShowProfileDetails(false), 300);
   };
 
   return (
@@ -104,19 +104,17 @@ function MainNavbar({ onLogout }) {
       {/* Side Sidebar */}
       <div className={`side-sidebar ${isSidebarOpen ? "open" : ""}`}>
         <div className="sidebar-header">
-          <h3>{showProfileDetails ? "User Profile" : "Account Settings"}</h3>
+          <h3>Account Settings</h3>
           <button className="close-btn" onClick={closeSidebar}>
             <i className="fa-solid fa-xmark"></i>
           </button>
         </div>
 
         <div className="sidebar-content">
-          {!showProfileDetails ? (
-            /* --- VIEW 1: MAIN NAVIGATION --- */
-            <div className="menu-view fade-in">
-              <button className="sidebar-link" onClick={() => setShowProfileDetails(true)}>
+          <div className="menu-view fade-in">
+              <Link to={accountPath} className="sidebar-link" onClick={closeSidebar}>
                 <span className="icon"><i className="fa-solid fa-user-gear"></i></span> My Profile
-              </button>
+              </Link>
 
               {showShopperActions && <Link to={getOrdersPathForRole()} className="sidebar-link" onClick={closeSidebar}>
                 <span className="icon"><i className="fa-solid fa-box-archive"></i></span> My Orders
@@ -167,33 +165,7 @@ function MainNavbar({ onLogout }) {
               <button className="sidebar-link logout-link" onClick={handleLogout}>
                 <span className="icon"><i className="fa-solid fa-right-from-bracket"></i></span> Logout
               </button>
-            </div>
-          ) : (
-            /* --- VIEW 2: PROFILE DETAILS --- */
-            <div className="profile-view fade-in">
-              {/* 🆕 Improved Back Link with FontAwesome Arrow */}
-              <button className="sidebar-link back-link" onClick={() => setShowProfileDetails(false)}>
-                <span className="icon"><i className="fa-solid fa-chevron-left"></i></span> Back
-              </button>
-
-              <div className="sidebar-user-info">
-                <div className="user-avatar-large">
-                  {user?.image ? (
-                    <img src={user.image} alt={user.name} />
-                  ) : (
-                    <span>{user?.name?.charAt(0).toUpperCase() || "U"}</span>
-                  )}
-                </div>
-                <div className="user-details-group">
-                  <h4 className="user-name-title">{user?.name || "Eco User"}</h4>
-                  <p className="user-email-text">{user?.email || "No email available"}</p>
-                  <span className="user-role-badge">{user?.role || "USER"}</span>
-                </div>
-              </div>
-
-              <div className="sidebar-divider" />
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </>

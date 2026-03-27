@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import {
   changeUserRole,
   fetchAdminUsers,
@@ -93,6 +94,7 @@ function AdminManagement() {
         {loadError && <div className="admin-load-error" role="alert">{loadError}</div>}
 
         <header className="admin-hero">
+          <BackButton fallbackTo={getAdminDashboardPath()} label="Back" className="admin-back-button" />
           <div>
             <p className="admin-kicker">Access & Governance</p>
             <h1>User Roles, Seller Approval, and Platform Control</h1>

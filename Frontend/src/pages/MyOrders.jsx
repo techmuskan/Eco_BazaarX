@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; // <-- for navigation
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { fetchOrdersApi } from "../services/orderService";
+import { getDashboardPathForRole } from "../utils/roleAccess";
 import "../styles/MyOrders.css";
 
 function MyOrders() {
@@ -32,6 +34,7 @@ function MyOrders() {
     <div className="orders-page-wrapper">
       <MainNavbar />
       <main className="orders-content">
+        <BackButton fallbackTo={getDashboardPathForRole("USER")} label="Back" className="orders-back-button" />
         <h2 className="page-title">My Orders</h2>
 
         {loading ? (

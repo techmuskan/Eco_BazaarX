@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { fetchSellerOrders, updateSellerOrderStatus } from "../services/sellerService";
+import { getDashboardPathForRole } from "../utils/roleAccess";
 import "../styles/SellerDashboard.css";
 
 function SellerOrders({ onLogout }) {
@@ -40,6 +42,7 @@ function SellerOrders({ onLogout }) {
       <MainNavbar onLogout={onLogout} />
       <div className="seller-dashboard">
         <section className="seller-hero">
+          <BackButton fallbackTo={getDashboardPathForRole("SELLER")} label="Back" className="seller-back-button" />
           <div>
             <p className="seller-kicker">Seller Orders</p>
             <h1>Track every buyer order that includes your products.</h1>

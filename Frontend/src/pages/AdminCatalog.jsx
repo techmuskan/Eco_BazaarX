@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { updateProductStatusAPI } from "../services/adminService";
 import { getProducts } from "../services/productService";
-import { getAddProductPathForRole, getEditProductPathForRole } from "../utils/roleAccess";
+import { getAddProductPathForRole, getAdminDashboardPath, getEditProductPathForRole } from "../utils/roleAccess";
 import "../styles/AdminManagement.css";
 
 function AdminCatalog() {
@@ -67,6 +68,7 @@ function AdminCatalog() {
         {loadError && <div className="admin-load-error" role="alert">{loadError}</div>}
 
         <header className="admin-hero">
+          <BackButton fallbackTo={getAdminDashboardPath()} label="Back" className="admin-back-button" />
           <div>
             <p className="admin-kicker">Catalog Governance</p>
             <h1>Product Moderation & Eco Verification Control</h1>

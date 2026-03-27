@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
+import { getDashboardPathForRole } from "../utils/roleAccess";
 import "../styles/Wishlist.css";
 
 function WishlistPage() {
@@ -49,6 +51,7 @@ function WishlistPage() {
     <div className="wishlist-page">
       <MainNavbar />
       <div className="wishlist-container">
+        <BackButton fallbackTo={getDashboardPathForRole("USER")} label="Back" className="wishlist-back-button" />
         <div className="wishlist-header">
           <h2>My Wishlist</h2>
           <p>{items.length} {items.length === 1 ? 'item' : 'items'}</p>

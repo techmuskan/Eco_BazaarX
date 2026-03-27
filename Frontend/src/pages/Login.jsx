@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { login } from "../services/authService";
+import BackButton from "../components/BackButton";
 import { getDashboardPathForRole } from "../utils/roleAccess";
 import "../styles/Login.css";
 
@@ -14,6 +16,7 @@ function Login({ onLoginSuccess }) {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handle input change
   const handleChange = (e) => {
@@ -62,6 +65,7 @@ function Login({ onLoginSuccess }) {
         </aside>
 
         <div className="auth-card">
+          <BackButton fallbackTo="/" label="Back to Home" className="auth-back-button" forceFallback />
           <h2>Login</h2>
           <p className="auth-sub">Access your account to continue shopping.</p>
 
@@ -76,14 +80,24 @@ function Login({ onLoginSuccess }) {
               onChange={handleChange}
               disabled={loading}
             />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              disabled={loading}
-            />
+            <div className="password-field">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={loading}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
+              </button>
+            </div>
             <button type="submit" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </button>

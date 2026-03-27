@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { placeOrderApi } from "../services/orderService";
@@ -165,6 +166,7 @@ function CheckoutPage() {
       <MainNavbar />
       <div className="checkout-bg">
         <div className="checkout-container">
+          <BackButton fallbackTo="/cart" label="Back" className="checkout-back-button" />
           
           <div className="checkout-left">
             {/* Step 1: Address Selection */}

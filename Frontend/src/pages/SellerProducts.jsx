@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { fetchSellerProducts } from "../services/sellerService";
-import { getAddProductPathForRole, getEditProductPathForRole } from "../utils/roleAccess";
+import { getAddProductPathForRole, getDashboardPathForRole, getEditProductPathForRole } from "../utils/roleAccess";
 import "../styles/SellerDashboard.css";
 
 function SellerProducts({ onLogout }) {
@@ -30,6 +31,7 @@ function SellerProducts({ onLogout }) {
       <MainNavbar onLogout={onLogout} />
       <div className="seller-dashboard">
         <section className="seller-hero">
+          <BackButton fallbackTo={getDashboardPathForRole("SELLER")} label="Back" className="seller-back-button" />
           <div>
             <p className="seller-kicker">Seller Products</p>
             <h1>Manage your listings in one dedicated workspace.</h1>

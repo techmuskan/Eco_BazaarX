@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { useToast } from "../context/ToastContext";
 import { API_BASE_URL } from "../config/api";
 import { getValidToken } from "../utils/authSession";
@@ -93,6 +94,7 @@ function PaymentPage() {
     <div className="payment-page-bg">
       <MainNavbar />
       <div className="payment-container">
+        <BackButton fallbackTo={getCheckoutPathForRole()} label="Back" className="payment-back-button" />
         
         {/* LEFT: Payment Methods */}
         <div className="payment-left">

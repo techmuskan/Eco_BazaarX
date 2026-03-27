@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { getStoredUser, setStoredUser } from "../services/authService";
 import { fetchSellerProfile, updateSellerProfile } from "../services/sellerService";
+import { getDashboardPathForRole } from "../utils/roleAccess";
 import "../styles/SellerDashboard.css";
 
 function SellerProfile({ onLogout }) {
@@ -60,6 +62,7 @@ function SellerProfile({ onLogout }) {
       <MainNavbar onLogout={onLogout} />
       <div className="seller-dashboard">
         <section className="seller-hero">
+          <BackButton fallbackTo={getDashboardPathForRole("SELLER")} label="Back" className="seller-back-button" />
           <div>
             <p className="seller-kicker">Store Profile</p>
             <h1>Define how your storefront appears across the platform.</h1>

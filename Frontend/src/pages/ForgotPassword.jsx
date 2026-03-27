@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { forgotPassword, resetPassword } from "../services/authService";
+import BackButton from "../components/BackButton";
 import "../styles/ForgotPassword.css";
 
 function ForgotPassword() {
@@ -88,6 +89,7 @@ function ForgotPassword() {
         </aside>
 
         <div className="forgot-card">
+          <BackButton fallbackTo="/login" label="Back" className="auth-back-button" />
           <h2>Forgot Password</h2>
           <p className="auth-sub">Enter your details to continue account recovery.</p>
 

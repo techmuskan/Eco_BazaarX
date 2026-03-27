@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import "../styles/AddProduct.css";
 import MainNavbar from "../components/MainNavbar";
+import BackButton from "../components/BackButton";
 import { createProduct, updateProduct, getProductById } from "../services/productService";
 import { uploadProductImage } from "../services/cloudinaryService";
 import { useToast } from "../context/ToastContext";
@@ -140,6 +141,11 @@ const AddProduct = () => {
             <main className="form-wrapper">
                 <form className="product-form" onSubmit={onSubmit}>
                     <div className="form-header">
+                        <BackButton
+                            fallbackTo={isSeller ? getDashboardPathForRole("SELLER") : getCatalogPathForRole("ADMIN")}
+                            label="Back"
+                            className="form-back-button"
+                        />
                         <h2>{id ? "Edit Listing" : "Add New Product"}</h2>
                         <p>Provide accurate data to improve your eco-rating on the marketplace.</p>
                     </div>

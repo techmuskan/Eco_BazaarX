@@ -38,6 +38,8 @@ export const getWishlistPathForRole = () => "/user/wishlist";
 
 export const getInsightsPathForRole = () => "/user/insights";
 
+export const getAccountPathForRole = (role) => `${getRoleRootPath(role)}/account`;
+
 export const getAddProductPathForRole = (role) => {
   if (normalizeRole(role) === "ADMIN") {
     return "/admin/products/new";
