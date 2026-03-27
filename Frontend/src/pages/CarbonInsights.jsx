@@ -46,15 +46,22 @@ function CarbonInsights() {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchUserInsights();
-        setInsightData(data);
-
         if (user?.role === "ADMIN") {
           const aData = await fetchAdminAnalytics();
           setAdminData(aData);
+          setInsightData({
+            totalFootprint: 0,
+            averageMonthly: 0,
+            bestMonth: "N/A",
+            monthlyTrends: [],
+            topProducts: [],
+          });
+        } else {
+          const data = await fetchUserInsights();
+          setInsightData(data);
         }
       } catch (err) {
-        setError("Unable to load sustainability data. Please check your connection.");
+        setError(err.message || "Unable to load sustainability data. Please check your connection.");
       } finally {
         setLoading(false);
       }

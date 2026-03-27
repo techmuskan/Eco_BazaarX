@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
@@ -6,6 +6,14 @@ import { useWishlist } from "../context/WishlistContext";
 import MainNavbar from "../components/MainNavbar";
 import { getProductById } from "../services/productService";
 import { getRecommendations } from "../services/recommendationService";
+import { getStoredUser } from "../services/authService";
+import {
+  buildLifecycleNarrative,
+  enrichRecommendation,
+  getBreakdownRows,
+  getEmissionBand,
+  getLeadingCarbonStage,
+} from "../utils/sustainability";
 import "../styles/ProductDetail.css";
 
 function ProductDetail() {
@@ -13,6 +21,8 @@ function ProductDetail() {
   const { items: cartItems = [], addToCart, updateQuantity, removeFromCart } = useCart();
   const { showToast } = useToast();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const currentUser = getStoredUser();
+  const isBuyer = currentUser?.role === "USER";
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,7 +45,7 @@ function ProductDetail() {
   useEffect(() => {
     loadDetail();
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [id]);
+  }, [loadDetail]);
   useEffect(() => {
     if (!product?.id) return;
 
@@ -53,7 +63,7 @@ function ProductDetail() {
     };
 
     fetchRecommendations();
-  }, [product?.id]);
+  }, [product?.id, showToast]);
 
   const getQuantity = (productId) =>
     cartItems.find((i) => i.productId === productId)?.quantity || 0;
@@ -77,6 +87,20 @@ function ProductDetail() {
     }
   };
 
+  const carbonRows = useMemo(() => getBreakdownRows(product), [product]);
+  const emission = Number(product?.carbonData?.totalCO2ePerKg || 0);
+  const dominantStage = useMemo(() => getLeadingCarbonStage(carbonRows), [carbonRows]);
+  const emissionBand = useMemo(() => getEmissionBand(emission), [emission]);
+  const lifecycleNarrative = useMemo(() => buildLifecycleNarrative(product), [product]);
+  const topBreakdownValue = Math.max(...carbonRows.map((row) => row.value), 1);
+  const enrichedRecommendations = useMemo(
+    () => recommendations.map((item) => enrichRecommendation(item, emission)),
+    [recommendations, emission]
+  );
+  const strongestAlternative = enrichedRecommendations.length
+    ? [...enrichedRecommendations].sort((a, b) => b.savings - a.savings)[0]
+    : null;
+
   if (loading)
     return (
       <div className="page-loader">
@@ -87,7 +111,6 @@ function ProductDetail() {
   if (!product) return <div className="error-state">Product not found.</div>;
 
   const productQty = getQuantity(product.id);
-  const emission = Number(product?.carbonData?.totalCO2ePerKg || 0);
 
   return (
     <main className="premium-product-page">
@@ -114,6 +137,11 @@ function ProductDetail() {
             </nav>
 
             <h1 className="product-title">{product.name}</h1>
+            <div className="footprint-chip-row">
+              <span className={`footprint-chip chip-${emissionBand.tone}`}>{emissionBand.label}</span>
+              <span className="footprint-chip chip-outline">Score {emissionBand.score}/100</span>
+              {product.isEcoFriendly && <span className="footprint-chip chip-outline">Eco verified</span>}
+            </div>
 
             <div className="price-row">
               <span className="current-price">₹{Number(product.price).toFixed(2)}</span>
@@ -122,24 +150,33 @@ function ProductDetail() {
           </header>
 
           <div className="purchase-controls">
-            {productQty > 0 ? (
-              <div className="premium-qty-selector">
-                <button onClick={() => handleCartAction("decrement")}>—</button>
-                <span className="qty-count">{productQty}</span>
-                <button onClick={() => handleCartAction("increment")}>+</button>
-              </div>
-            ) : (
-              <button className="primary-buy-btn" onClick={() => handleCartAction("increment")}>
-                Add to Cart
-              </button>
-            )}
+            {isBuyer ? (
+              <>
+                {productQty > 0 ? (
+                  <div className="premium-qty-selector">
+                    <button onClick={() => handleCartAction("decrement")}>—</button>
+                    <span className="qty-count">{productQty}</span>
+                    <button onClick={() => handleCartAction("increment")}>+</button>
+                  </div>
+                ) : (
+                  <button className="primary-buy-btn" onClick={() => handleCartAction("increment")}>
+                    Add to Cart
+                  </button>
+                )}
 
-            <button
-              className={`wishlist-action ${isInWishlist(product.id) ? "active" : ""}`}
-              onClick={() => toggleWishlist(product)}
-            >
-              {isInWishlist(product.id) ? "♥ In Wishlist" : "♡ Add to Wishlist"}
-            </button>
+                <button
+                  className={`wishlist-action ${isInWishlist(product.id) ? "active" : ""}`}
+                  onClick={() => toggleWishlist(product)}
+                >
+                  {isInWishlist(product.id) ? "♥ In Wishlist" : "♡ Add to Wishlist"}
+                </button>
+              </>
+            ) : (
+              <div className="description-block">
+                <h3>Operator view</h3>
+                <p>Shopping actions are reserved for buyer accounts. Use the catalog and seller/admin workspaces to manage this listing.</p>
+              </div>
+            )}
           </div>
 
           <div className="description-block">
@@ -168,8 +205,36 @@ function ProductDetail() {
               </div>
 
               <p className="impact-footer">
-                This item ranks in the <strong>top 15%</strong> for environmental efficiency.
+                {lifecycleNarrative}
               </p>
+            </div>
+          </div>
+
+          <div className="impact-breakdown-card">
+            <div className="impact-breakdown-head">
+              <h4>Lifecycle Breakdown</h4>
+              <p>
+                {dominantStage
+                  ? `${dominantStage.label} is the largest contributor right now.`
+                  : "Lifecycle data will appear once carbon sources are mapped."}
+              </p>
+            </div>
+
+            <div className="breakdown-list">
+              {carbonRows.map((row) => (
+                <div key={row.key} className="breakdown-row">
+                  <div className="breakdown-labels">
+                    <span>{row.label}</span>
+                    <strong>{row.value.toFixed(2)} kg</strong>
+                  </div>
+                  <div className="breakdown-track">
+                    <div
+                      className="breakdown-fill"
+                      style={{ width: `${(row.value / topBreakdownValue) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -204,13 +269,30 @@ function ProductDetail() {
       <section className="recommendation-section">
         <h2>🌱 Better Eco Alternatives</h2>
 
+        {strongestAlternative?.savings > 0 && (
+          <div className="switch-highlight-card">
+            <p className="switch-kicker">Best available switch</p>
+            <h3>
+              {strongestAlternative.productName} could reduce this choice by{" "}
+              {strongestAlternative.savings.toFixed(2)} kg CO2e
+            </h3>
+            <p>
+              {strongestAlternative.reason} That would move you from {emissionBand.label.toLowerCase()} to{" "}
+              {strongestAlternative.band.label.toLowerCase()} for this product decision.
+            </p>
+            <Link to={`/products/${strongestAlternative.productId}`} className="view-btn">
+              Compare this alternative
+            </Link>
+          </div>
+        )}
+
         <div className="recommendation-grid">
           {recLoading ? (
             <p>Loading recommendations...</p>
           ) : recommendations.length === 0 ? (
             <p>No recommendations available</p>
           ) : (
-            recommendations.map((item) => (
+            enrichedRecommendations.map((item) => (
               <div key={item.productId} className="recommendation-card">
 
                 {/* ✅ Product Image */}
@@ -230,21 +312,21 @@ function ProductDetail() {
                   🌍 {item.carbonFootprint ? item.carbonFootprint.toFixed(2) : "0.00"} kg CO2
                 </p>
 
-                <p className="eco">
-                  🌿 {item.ecoScore === 1 ? "Eco-Friendly Product" : "Standard Product"}
-                </p>
+                <p className="eco">🌿 {item.band.label}</p>
 
                 <p className="score">
                   ⭐ Score: {item.score ? item.score.toFixed(1) : "0.0"}
                 </p>
 
+                <p className="recommendation-reason">{item.reason}</p>
+
                 {item.score > 60 && (
                   <span className="best-badge">🔥 Best Choice</span>
                 )}
 
-                {item.carbonFootprint < emission && (
+                {item.savings > 0 && (
                   <p className="better">
-                    ✅ Saves {(emission - item.carbonFootprint).toFixed(2)} kg CO₂
+                    ✅ Saves {item.savings.toFixed(2)} kg CO₂
                   </p>
                 )}
 

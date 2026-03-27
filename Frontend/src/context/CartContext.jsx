@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo } from "react";
+import { createContext, useCallback, useContext, useState, useEffect, useMemo } from "react";
 import {
   fetchCart as fetchCartApi,
   addToCart as addToCartApi,
@@ -6,6 +6,7 @@ import {
   updateQuantity as updateQuantityApi,
   clearCart as clearCartApi,
 } from "../services/cartService";
+import { getStoredUser } from "../services/authService";
 
 const CartContext = createContext();
 
@@ -17,11 +18,14 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
+  const role = getStoredUser()?.role;
+  const isBuyerSession = role === "USER";
 
   // ✅ FIXED: Only sum the prices (assuming backend sends line-item total)
   const subtotal = useMemo(() => {
     return items.reduce((total, item) => {
-      return total + (item.price || 0);
+      const lineSubtotal = item.subtotal ?? ((item.price || 0) * (item.quantity || 1));
+      return total + lineSubtotal;
     }, 0);
   }, [items]);
 
@@ -32,8 +36,10 @@ export const CartProvider = ({ children }) => {
     }, 0);
   }, [items]);
 
-  const fetchCart = async () => {
-    if (!token) {
+  const fetchCart = useCallback(async () => {
+    if (!token || !isBuyerSession) {
+      setItems([]);
+      setCartId(null);
       setLoading(false);
       return;
     }
@@ -53,11 +59,11 @@ export const CartProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, isBuyerSession]);
 
   useEffect(() => {
     fetchCart();
-  }, [token]);
+  }, [fetchCart]);
 
   const addToCart = async (productId, quantity) => {
     try {

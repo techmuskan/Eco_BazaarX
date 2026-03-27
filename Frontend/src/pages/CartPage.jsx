@@ -1,6 +1,10 @@
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
+import { getProducts } from "../services/productService";
+import { getCatalogPathForRole, getCheckoutPathForRole, getProductDetailPath } from "../utils/roleAccess";
+import { buildCartSwitchSuggestion } from "../utils/sustainability";
 import "../styles/CartPage.css";
 
 function CartPage() {
@@ -10,12 +14,27 @@ function CartPage() {
     loading,
     removeFromCart,
     updateQuantity,
-    clearCart,
     totalEmission,
     subtotal
   } = useCart();
 
   const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(Array.isArray(data) ? data : []);
+      } catch {
+        setProducts([]);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
+  const switchSuggestion = useMemo(() => buildCartSwitchSuggestion(items, products), [items, products]);
 
   if (loading) return (
     <div className="cart-loader">
@@ -32,7 +51,7 @@ function CartPage() {
           <div className="empty-icon">🛒</div>
           <h2>Your cart is empty</h2>
           <p>Looks like you haven't added anything to your cart yet.</p>
-          <button className="continue-btn" onClick={() => navigate("/products")}>
+          <button className="continue-btn" onClick={() => navigate(getCatalogPathForRole("USER"))}>
             Start Shopping
           </button>
         </div>
@@ -70,7 +89,7 @@ function CartPage() {
                   </div>
                   
                   <div className="item-stats-row">
-                    <p className="price">₹{item.price}</p>
+                    <p className="price">₹{Number(item.subtotal ?? item.price ?? 0).toFixed(2)}</p>
                     <p className="item-carbon-tag">
                       <i className="fa-solid fa-leaf"></i> 
                       {/* ✅ FIXED: Removed * quantity here */}
@@ -113,6 +132,29 @@ function CartPage() {
             </p>
           </div>
 
+          {switchSuggestion && (
+            <div className="switch-suggestion-box">
+              <p className="switch-kicker">Smart switch suggestion</p>
+              <h4>Swap {switchSuggestion.source.productName} for {switchSuggestion.alternative.name}</h4>
+              <p className="switch-copy">
+                This single change could save <strong>{switchSuggestion.savings.toFixed(2)} kg CO2e</strong> and
+                move your cart from <strong>{switchSuggestion.currentTotal.toFixed(2)} kg</strong> to{" "}
+                <strong>{switchSuggestion.projectedTotal.toFixed(2)} kg</strong>.
+              </p>
+              <div className="switch-metrics">
+                <span>Current item: {Number(switchSuggestion.source.emission || 0).toFixed(2)} kg</span>
+                <span>Alternative: {Number(switchSuggestion.alternative.emission || 0).toFixed(2)} kg</span>
+                <span>{switchSuggestion.alternativeBand.label}</span>
+              </div>
+              <button
+                className="switch-action-btn"
+                onClick={() => navigate(getProductDetailPath(switchSuggestion.alternative.id))}
+              >
+                Review better option
+              </button>
+            </div>
+          )}
+
           <div className="summary-divider"></div>
 
           <h3>Price Details</h3>
@@ -134,7 +176,7 @@ function CartPage() {
             <span>₹{total.toFixed(2)}</span>
           </div>
           
-          <button className="checkout-btn" onClick={() => navigate("/checkout", { state: { cartId } })}>
+          <button className="checkout-btn" onClick={() => navigate(getCheckoutPathForRole(), { state: { cartId } })}>
             PROCEED TO CHECKOUT
           </button>
         </div>

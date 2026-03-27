@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import MainNavbar from "../components/MainNavbar";
+import { getCatalogPathForRole, getOrdersPathForRole } from "../utils/roleAccess";
 import "../styles/OrderSuccess.css";
 
 function OrderSuccess() {
@@ -11,7 +12,7 @@ function OrderSuccess() {
   // Redirect if accessed without order data
   useEffect(() => {
     if (!order) {
-      navigate("/products");
+      navigate(getCatalogPathForRole("USER"));
     }
   }, [order, navigate]);
 
@@ -53,10 +54,10 @@ function OrderSuccess() {
           </div>
 
           <div className="success-actions">
-            <button className="view-orders-btn" onClick={() => navigate("/my-orders")}>
+            <button className="view-orders-btn" onClick={() => navigate(getOrdersPathForRole())}>
               VIEW MY ORDERS
             </button>
-            <button className="continue-shop-btn" onClick={() => navigate("/products")}>
+            <button className="continue-shop-btn" onClick={() => navigate(getCatalogPathForRole("USER"))}>
               CONTINUE SHOPPING
             </button>
           </div>

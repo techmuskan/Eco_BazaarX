@@ -21,15 +21,18 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
+    private final SellerProfileService sellerProfileService;
 
     public UserService(UserRepository usersRepo,
                        BCryptPasswordEncoder passwordEncoder,
                        EmailService emailService,
-                       JwtUtil jwtUtil) {
+                       JwtUtil jwtUtil,
+                       SellerProfileService sellerProfileService) {
         this.usersRepo = usersRepo;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.jwtUtil = jwtUtil;
+        this.sellerProfileService = sellerProfileService;
     }
 
     // ================= GET PROFILE =================
@@ -72,7 +75,13 @@ public class UserService {
         if (user.getRole() == null)
             user.setRole(Role.USER);
 
-        return usersRepo.save(user);
+        Users savedUser = usersRepo.save(user);
+
+        if (savedUser.getRole() == Role.SELLER) {
+            sellerProfileService.ensureProfile(savedUser);
+        }
+
+        return savedUser;
     }
 
     // ================= LOGIN =================

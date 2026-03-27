@@ -1,20 +1,28 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { API_BASE_URL } from "../config/api";
+import { buildAuthHeaders, getValidToken } from "../utils/authSession";
+import { getStoredUser } from "../services/authService";
 
 const WishlistContext = createContext();
 
 export const WishlistProvider = ({ children }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const API_URL = "http://localhost:8080/api/wishlist";
+  const API_URL = `${API_BASE_URL}/api/wishlist`;
+  const role = getStoredUser()?.role;
+  const isBuyerSession = role === "USER";
 
-  const getAuthHeaders = useCallback(() => ({
-    "Authorization": `Bearer ${localStorage.getItem("token")}`,
-    "Content-Type": "application/json",
-  }), []);
+  const getAuthHeaders = useCallback(
+    () => buildAuthHeaders({ "Content-Type": "application/json" }),
+    []
+  );
 
   const fetchWishlist = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const token = getValidToken();
+    if (!token || !isBuyerSession) {
+      setItems([]);
+      return;
+    }
     try {
       setLoading(true);
       const response = await fetch(API_URL, { headers: getAuthHeaders() });
@@ -27,7 +35,7 @@ export const WishlistProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [getAuthHeaders]);
+  }, [API_URL, getAuthHeaders, isBuyerSession]);
 
   useEffect(() => {
     fetchWishlist();
@@ -38,6 +46,7 @@ export const WishlistProvider = ({ children }) => {
   };
 
   const addToWishlist = async (product) => {
+    if (!isBuyerSession) return;
     try {
       const response = await fetch(`${API_URL}/add`, {
         method: "POST",
@@ -60,6 +69,7 @@ export const WishlistProvider = ({ children }) => {
   };
 
   const removeFromWishlist = async (productId) => {
+    if (!isBuyerSession) return;
     try {
       const response = await fetch(`${API_URL}/remove/${productId}`, {
         method: "DELETE",
@@ -75,6 +85,7 @@ export const WishlistProvider = ({ children }) => {
 
   // ✅ NEW: The Toggle function required by ProductCatalog
   const toggleWishlist = async (product) => {
+    if (!isBuyerSession) return;
     if (isInWishlist(product.id)) {
       await removeFromWishlist(product.id);
     } else {

@@ -24,11 +24,17 @@ public class Product {
 
     private String seller;
 
+    private Long sellerProfileId;
+
+    private String sellerOwnerEmail;
+
+    private String sellerOwnerName;
+
     @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
     private Double price;
 
-    // Stores Cloudinary URL
-    @Column(length = 2000)
+    // Stores long Cloudinary / CDN URLs safely
+    @Column(columnDefinition = "TEXT")
     private String image;
 
     // Use columnDefinition = "TEXT" for long product descriptions

@@ -1,5 +1,6 @@
 package com.SignupForm.dto.auth;
 
+import com.SignupForm.enums.Role;
 import lombok.*;
 
 @Getter
@@ -12,4 +13,5 @@ public class RegisterRequest {
     private String email;
     private String password;
     private String phone;
+    private Role role;
 }

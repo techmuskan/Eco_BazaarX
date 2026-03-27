@@ -268,6 +268,56 @@
   font-style: italic;
 }
 
+.switch-suggestion-box {
+  margin: 0 16px 20px;
+  padding: 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff7ed, #fffbeb);
+  border: 1px solid #fed7aa;
+}
+
+.switch-kicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #c2410c;
+}
+
+.switch-suggestion-box h4 {
+  margin: 0 0 10px;
+  color: #7c2d12;
+  font-size: 18px;
+}
+
+.switch-copy {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #7c2d12;
+}
+
+.switch-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 14px;
+  color: #9a3412;
+  font-size: 13px;
+}
+
+.switch-action-btn {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: #0f766e;
+  color: #f8fafc;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .item-stats-row {
   display: flex;
   justify-content: space-between;

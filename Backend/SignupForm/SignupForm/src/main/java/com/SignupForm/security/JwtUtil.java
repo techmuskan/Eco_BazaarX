@@ -3,8 +3,8 @@ package com.SignupForm.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -13,15 +13,14 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // 🔐 Must be at least 256 bits (32+ characters)
-    private static final String SECRET_KEY =
-            "mysupersecretkeymysupersecretkey123456";
+    @Value("${app.jwt.secret}")
+    private String secretKey;
 
-    private static final long EXPIRATION_TIME =
-            1000 * 60 * 60 * 2; // 2 hour
+    @Value("${app.jwt.expiration-ms}")
+    private long expirationTime;
 
     private Key getSignKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     // ================= GENERATE TOKEN =================
@@ -32,7 +31,7 @@ public class JwtUtil {
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(
-                        new Date(System.currentTimeMillis() + EXPIRATION_TIME)
+                        new Date(System.currentTimeMillis() + expirationTime)
                 )
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();

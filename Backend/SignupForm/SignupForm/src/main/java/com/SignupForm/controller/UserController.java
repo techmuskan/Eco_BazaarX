@@ -12,7 +12,7 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/profile")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAnyRole('USER','SELLER','ADMIN')")
 public class UserController {
 
     private final UserService userService;

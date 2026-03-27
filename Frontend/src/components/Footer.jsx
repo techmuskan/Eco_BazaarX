@@ -1,5 +1,19 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
+import {
+  getAddProductPathForRole,
+  getAdminCatalogPath,
+  getAdminDashboardPath,
+  getAdminManagementPath,
+  getCartPathForRole,
+  getCatalogPathForRole,
+  getCheckoutPathForRole,
+  getDashboardPathForRole,
+  getInsightsPathForRole,
+  getOrdersPathForRole,
+  getWishlistPathForRole,
+} from "../utils/roleAccess";
 import "../styles/Footer.css";
 import {
   FaFacebookF,
@@ -12,6 +26,10 @@ const Footer = ({ user }) => {
   const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [subscribing, setSubscribing] = useState(false);
+  const dashboardPath = getDashboardPathForRole(user?.role);
+  const catalogPath = getCatalogPathForRole(user?.role);
+  const isAdmin = user?.role === "ADMIN";
+  const isSeller = user?.role === "SELLER";
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
@@ -60,25 +78,29 @@ const Footer = ({ user }) => {
         {/* Links section */}
         <div className="footer-links">
           <h4>Marketplace</h4>
-          <a href="/products">Products</a>
-          {user && <a href="/cart">Cart</a>}
-          {user && <a href="/wishlist">Wishlist</a>}
-          {user && <a href="/checkout">Checkout</a>}
+          <Link to={catalogPath}>Products</Link>
+          {user && !isAdmin && !isSeller && <Link to={getCartPathForRole()}>Cart</Link>}
+          {user && !isAdmin && !isSeller && <Link to={getWishlistPathForRole()}>Wishlist</Link>}
+          {user && !isAdmin && !isSeller && <Link to={getCheckoutPathForRole()}>Checkout</Link>}
+          {isSeller && <Link to={getAddProductPathForRole(user?.role)}>List Product</Link>}
         </div>
 
         <div className="footer-links">
           <h4>Account</h4>
           {user ? (
             <>
-              <a href="/dashboard">Dashboard</a>
-              <a href="/my-orders">My Orders</a>
-              <a href="/insights">Carbon Insights</a>
-              {user.role === "ADMIN" && <a href="/admin">Admin Panel</a>}
+              <Link to={dashboardPath}>Dashboard</Link>
+              {!isAdmin && !isSeller && <Link to={getOrdersPathForRole()}>My Orders</Link>}
+              {!isAdmin && !isSeller && <Link to={getInsightsPathForRole()}>Carbon Insights</Link>}
+              {isSeller && <Link to={getDashboardPathForRole(user?.role)}>Seller Hub</Link>}
+              {user.role === "ADMIN" && <Link to={getAdminDashboardPath()}>Admin Dashboard</Link>}
+              {user.role === "ADMIN" && <Link to={getAdminManagementPath()}>Admin Management</Link>}
+              {user.role === "ADMIN" && <Link to={getAdminCatalogPath()}>Admin Catalog</Link>}
             </>
           ) : (
             <>
-              <a href="/login">Login</a>
-              <a href="/signup">Sign Up</a>
+              <Link to="/login">Login</Link>
+              <Link to="/signup">Sign Up</Link>
             </>
           )}
         </div>

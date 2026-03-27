@@ -1,20 +1,20 @@
-// recommendationService.js
+import { API_BASE_URL } from "../config/api";
+import { buildAuthHeaders, getValidToken } from "../utils/authSession";
+
 export const getRecommendations = async (productId) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = getValidToken();
 
-    // ✅ Optional: check token
     if (!token) {
       throw new Error("User not authenticated");
     }
 
     const response = await fetch(
-      "http://localhost:8080/api/recommendations",
+      `${API_BASE_URL}/api/recommendations`,
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...buildAuthHeaders({ "Content-Type": "application/json" }),
         },
         body: JSON.stringify({
           productId: productId,

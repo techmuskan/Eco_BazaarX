@@ -9,6 +9,7 @@ import com.SignupForm.repository.*;
 import com.SignupForm.util.AppConstants;
 import com.SignupForm.util.OrderIdGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,9 @@ public class CheckoutService {
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
+
+    @Value("${app.public-base-url:http://localhost:8080}")
+    private String publicBaseUrl;
 
     // ================= PLACE ORDER =================
     public OrderResponse checkout(Long userId, CheckoutRequest request) {
@@ -95,6 +99,8 @@ public class CheckoutService {
                     .order(order)
                     .product(product)
                     .productName(product.getName())
+                    .sellerEmail(product.getSellerOwnerEmail())
+                    .sellerName(product.getSeller())
                     .quantity(quantity)
                     .price(price)
                     .subtotal(itemSubtotal)
@@ -154,7 +160,7 @@ public class CheckoutService {
                 if (img.startsWith("http")) {
                     productImage = img; // already a full URL
                 } else {
-                    productImage = "http://localhost:8080" + img; // relative path
+                    productImage = publicBaseUrl + img; // relative path
                 }
             }
             itemResponses.add(OrderItemResponse.builder()

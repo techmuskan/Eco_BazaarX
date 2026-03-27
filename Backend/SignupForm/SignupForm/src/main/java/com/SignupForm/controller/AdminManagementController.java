@@ -7,12 +7,15 @@ import com.SignupForm.repository.OrderRepository;
 import com.SignupForm.service.AdminService;
 import com.SignupForm.service.CarbonCalculationService;
 import com.SignupForm.dto.product.ProductRequest;
+import com.SignupForm.dto.seller.SellerProfileResponse;
+import com.SignupForm.responses.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,27 +34,35 @@ public class AdminManagementController {
 
     // --- USERS & ROLES ---
     @GetMapping("/users")
-    public ResponseEntity<List<Users>> getAllUsers() {
-        return ResponseEntity.ok(userRepo.findAll());
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(adminService.getAllUsers());
+    }
+
+    @GetMapping("/seller-profiles")
+    public ResponseEntity<List<SellerProfileResponse>> getSellerProfiles() {
+        return ResponseEntity.ok(adminService.getAllSellerProfiles());
+    }
+
+    @PutMapping("/seller-profiles/{id}/approval")
+    public ResponseEntity<SellerProfileResponse> updateSellerApproval(
+            @PathVariable Long id,
+            @RequestParam boolean approved
+    ) {
+        return ResponseEntity.ok(adminService.updateSellerApproval(id, approved));
     }
 
     @PutMapping("/users/{id}/role")
     public ResponseEntity<?> updateUserRole(@PathVariable Long id, @RequestParam String role) {
-        return userRepo.findById(id).map(user -> {
-            try {
-                com.SignupForm.enums.Role targetRole = com.SignupForm.enums.Role.valueOf(role.toUpperCase());
-                user.setRole(targetRole);
-                userRepo.save(user);
-
-                Map<String, Object> response = new HashMap<>();
-                response.put("message", "User role updated to " + targetRole);
-                return ResponseEntity.ok(response);
-            } catch (IllegalArgumentException e) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("message", "Invalid role: " + role);
-                return ResponseEntity.badRequest().body(response);
-            }
-        }).orElse(ResponseEntity.notFound().build());
+        try {
+            com.SignupForm.enums.Role targetRole = com.SignupForm.enums.Role.valueOf(role.toUpperCase());
+            return ResponseEntity.ok(adminService.changeUserRole(id, targetRole));
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Invalid role: " + role);
+            return ResponseEntity.badRequest().body(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/users/{id}")
@@ -119,6 +130,7 @@ public class AdminManagementController {
     public ResponseEntity<Map<String, Object>> getAdminStats() {
         Map<String, Object> stats = new HashMap<>();
         List<Product> allProducts = productRepo.findAll();
+        List<Order> allOrders = orderRepository.findAll();
 
         long greenCount = allProducts.stream()
                 .filter(p -> Boolean.TRUE.equals(p.getIsEcoFriendly()))
@@ -130,7 +142,7 @@ public class AdminManagementController {
                 .sum();
 
         // Fetching top 20 recent orders
-        List<Order> recentOrders = orderRepository.findTop20ByOrderByOrderDateDesc();
+        List<Order> recentOrders = orderRepository.findTop20WithUserAndOrderItemsByOrderByOrderDateDesc();
 
         stats.put("totalNormalUsers", adminService.getTotalNormalUsers());
         stats.put("totalAdmins", adminService.getTotalAdmins());
@@ -138,6 +150,9 @@ public class AdminManagementController {
         stats.put("totalCarbonImpact", Math.round(totalSavings * 100.0) / 100.0);
         stats.put("inventoryCount", allProducts.size());
         stats.put("totalOrders", orderRepository.count());
+        stats.put("categoryBreakdown", buildCategoryBreakdown(allProducts));
+        stats.put("orderStatusBreakdown", buildOrderStatusBreakdown(allOrders));
+        stats.put("monthlyEmissionTrend", buildMonthlyEmissionTrend());
 
         // Map recent orders into the format React expects
         List<Map<String, Object>> recentOrdersMapped = recentOrders.stream().map(order -> {
@@ -187,5 +202,72 @@ public class AdminManagementController {
         health.put("serverTime", System.currentTimeMillis());
 
         return ResponseEntity.ok(health);
+    }
+
+    private List<Map<String, Object>> buildCategoryBreakdown(List<Product> products) {
+        return products.stream()
+                .collect(Collectors.groupingBy(
+                        product -> product.getCategory() == null || product.getCategory().isBlank()
+                                ? "Uncategorized"
+                                : product.getCategory(),
+                        Collectors.counting()
+                ))
+                .entrySet()
+                .stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .map(entry -> {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("label", entry.getKey());
+                    row.put("count", entry.getValue());
+                    return row;
+                })
+                .toList();
+    }
+
+    private List<Map<String, Object>> buildOrderStatusBreakdown(List<Order> orders) {
+        return orders.stream()
+                .collect(Collectors.groupingBy(
+                        order -> order.getStatus() == null || order.getStatus().isBlank()
+                                ? "Pending"
+                                : order.getStatus(),
+                        Collectors.counting()
+                ))
+                .entrySet()
+                .stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .map(entry -> {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("label", entry.getKey());
+                    row.put("count", entry.getValue());
+                    return row;
+                })
+                .toList();
+    }
+
+    private List<Map<String, Object>> buildMonthlyEmissionTrend() {
+        return orderRepository.getMonthlyEmissionStats().stream()
+                .map(row -> {
+                    Map<String, Object> point = new LinkedHashMap<>();
+                    point.put("label", row[0] == null ? "Unknown" : row[0].toString());
+                    point.put("value", safeNumericValue(row.length > 1 ? row[1] : null));
+                    return point;
+                })
+                .toList();
+    }
+
+    private double safeNumericValue(Object value) {
+        if (value == null) {
+            return 0.0;
+        }
+
+        if (value instanceof Number number) {
+            return Math.round(number.doubleValue() * 100.0) / 100.0;
+        }
+
+        try {
+            return Math.round(Double.parseDouble(value.toString()) * 100.0) / 100.0;
+        } catch (NumberFormatException ignored) {
+            return 0.0;
+        }
     }
 }

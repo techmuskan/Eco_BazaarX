@@ -6,11 +6,13 @@ import com.SignupForm.dto.auth.LoginRequest;
 import com.SignupForm.dto.auth.RegisterRequest;
 import com.SignupForm.responses.LoginResponse;
 import com.SignupForm.responses.UserResponse;
+import com.SignupForm.service.SellerProfileService;
 import com.SignupForm.service.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,24 +20,32 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final UserService userService;
+    private final SellerProfileService sellerProfileService;
+    
+    @Value("${app.signup.admin-enabled:false}")
+    private boolean adminSignupEnabled;
 
     // ================= SIGNUP =================
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
+            Role requestedRole = registerRequest.getRole() == null ? Role.USER : registerRequest.getRole();
+            if (requestedRole == Role.ADMIN && !adminSignupEnabled) {
+                throw new RuntimeException("Admin signup is currently disabled");
+            }
+
             Users user = new Users();
             user.setName(registerRequest.getName());
             user.setEmail(registerRequest.getEmail());
             user.setPassword(registerRequest.getPassword());
             user.setPhone(registerRequest.getPhone());
-            user.setRole(Role.USER);
+            user.setRole(requestedRole);
 
             Users savedUser = userService.addUser(user);
             String token = userService.generateTokenForUser(savedUser);
@@ -43,7 +53,14 @@ public class AuthController {
             UserResponse userResponse = mapToUserResponse(savedUser);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "User registered successfully");
+            response.put(
+                    "message",
+                    switch (requestedRole) {
+                        case ADMIN -> "Admin account registered successfully";
+                        case SELLER -> "Seller account registered successfully";
+                        default -> "User account registered successfully";
+                    }
+            );
             response.put("token", token);
             response.put("user", userResponse);
 
@@ -104,12 +121,18 @@ public class AuthController {
 
     // ================= HELPER =================
     private UserResponse mapToUserResponse(Users user) {
+        String storeName = null;
+        if (user.getRole() == Role.SELLER) {
+            storeName = sellerProfileService.getProfileEntityByEmail(user.getEmail()).getStoreName();
+        }
+
         return new UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
                 user.getPhone(),
-                user.getRole()
+                user.getRole(),
+                storeName
         );
     }
 }

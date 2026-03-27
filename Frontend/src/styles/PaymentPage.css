@@ -140,3 +140,36 @@
   margin-top: -10px;
   margin-bottom: 15px;
 }
+
+.coming-soon-panel {
+  padding: 16px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.coming-soon-panel h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #9a3412;
+}
+
+.coming-soon-panel p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #7c2d12;
+}
+
+.coming-soon-actions {
+  margin-top: 20px;
+}
+
+.muted-btn {
+  background: #334155;
+}
+
+.muted-btn:hover {
+  background: #1e293b;
+}

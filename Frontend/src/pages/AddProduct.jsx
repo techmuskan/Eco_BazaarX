@@ -5,16 +5,20 @@ import MainNavbar from "../components/MainNavbar";
 import { createProduct, updateProduct, getProductById } from "../services/productService";
 import { uploadProductImage } from "../services/cloudinaryService";
 import { useToast } from "../context/ToastContext";
+import { getStoredUser } from "../services/authService";
+import { getCatalogPathForRole, getDashboardPathForRole } from "../utils/roleAccess";
 
 const AddProduct = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { showToast } = useToast();
+    const currentUser = getStoredUser();
+    const isSeller = currentUser?.role === "SELLER";
 
     const [form, setForm] = useState({
         name: '',
         category: '',
-        seller: '',
+        seller: isSeller ? currentUser?.storeName || currentUser?.name || '' : '',
         price: '',
         description: '',
         isEcoFriendly: false,
@@ -41,7 +45,7 @@ const AddProduct = () => {
                     setForm({
                         name: data.name || '',
                         category: data.category || '',
-                        seller: data.seller || '',
+                        seller: data.seller || (isSeller ? currentUser?.storeName || currentUser?.name || '' : ''),
                         price: data.price || '',
                         description: data.description || '',
                         isEcoFriendly: data.isEcoFriendly || false,
@@ -54,14 +58,14 @@ const AddProduct = () => {
                     });
                 } catch (err) {
                     showToast("Error loading product", "error");
-                    navigate("/products");
+                    navigate(isSeller ? getDashboardPathForRole("SELLER") : getCatalogPathForRole("ADMIN"));
                 } finally {
                     setLoading(false);
                 }
             };
             fetchProduct();
         }
-    }, [id, navigate, showToast]);
+    }, [id, navigate, showToast, isSeller, currentUser]);
 
     const autoSum = Number(form.manufacturing || 0) + 
                     Number(form.packaging || 0) + 
@@ -118,9 +122,10 @@ const AddProduct = () => {
                 await createProduct(payload);
                 showToast("Listed successfully", "success");
             }
-            navigate("/products");
+            navigate(isSeller ? getDashboardPathForRole("SELLER") : getCatalogPathForRole("ADMIN"));
         } catch (err) {
-            showToast("Save failed", "error");
+            console.error("Product save error:", err);
+            showToast(err.message || "Save failed", "error");
         } finally {
             setSaving(false);
         }
@@ -153,7 +158,13 @@ const AddProduct = () => {
                             </div>
                             <div className="input-group">
                                 <label>Seller</label>
-                                <input name="seller" value={form.seller} onChange={onChange} placeholder="Store Name" />
+                                <input
+                                    name="seller"
+                                    value={form.seller}
+                                    onChange={onChange}
+                                    placeholder="Store Name"
+                                    disabled={isSeller}
+                                />
                             </div>
                         </div>
 
@@ -235,7 +246,11 @@ const AddProduct = () => {
                         <button type="submit" className="save-btn" disabled={saving}>
                             {saving ? "SAVING..." : id ? "UPDATE PRODUCT" : "CONFIRM & LIST"}
                         </button>
-                        <button type="button" className="cancel-btn" onClick={() => navigate("/products")}>
+                        <button
+                            type="button"
+                            className="cancel-btn"
+                            onClick={() => navigate(isSeller ? getDashboardPathForRole("SELLER") : getCatalogPathForRole("ADMIN"))}
+                        >
                             CANCEL
                         </button>
                     </div>

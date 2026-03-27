@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { signup } from "../services/authService";
+import { getDashboardPathForRole } from "../utils/roleAccess";
 import "../styles/Signup.css";
 
 function Signup({ onSignupSuccess }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -18,15 +20,22 @@ function Signup({ onSignupSuccess }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const requestedRole = String(searchParams.get("role") || "USER").toUpperCase();
+    if (requestedRole === "USER" || requestedRole === "SELLER") {
+      setFormData((current) => ({ ...current, role: requestedRole }));
+    }
+  }, [searchParams]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (error) setError("");
   };
 
   const validateForm = () => {
-    const { name, email, phone, password, confirmPassword, role } = formData;
+    const { name, email, phone, password, confirmPassword } = formData;
 
-    if (!name || !email || !phone || !password || !role) {
+    if (!name || !email || !phone || !password) {
       setError("Please fill in all required fields");
       return false;
     }
@@ -52,11 +61,6 @@ function Signup({ onSignupSuccess }) {
       return false;
     }
 
-    if (!["USER", "ADMIN"].includes(role)) {
-      setError("Please choose a valid role");
-      return false;
-    }
-
     return true;
   };
 
@@ -72,7 +76,7 @@ function Signup({ onSignupSuccess }) {
       userData.role = String(userData.role || "USER").toUpperCase();
       const { user } = await signup(userData);
       onSignupSuccess(user);
-      navigate("/dashboard"); // ✅ redirect after signup
+      navigate(getDashboardPathForRole(user.role));
     } catch (err) {
       setError(err.message || "Signup failed");
     } finally {
@@ -93,13 +97,13 @@ function Signup({ onSignupSuccess }) {
           <div className="showcase-points">
             <span>Eco ratings on products</span>
             <span>Greener swaps before checkout</span>
-            <span>Role-based access control</span>
+            <span>Role-based onboarding</span>
           </div>
         </aside>
 
         <div className="auth-card">
           <h2>Sign Up</h2>
-          <p className="auth-sub">Create your account and choose your role.</p>
+          <p className="auth-sub">Choose whether you are joining as a shopper or a seller.</p>
 
           <form onSubmit={handleSubmit}>
             {error && <div className="error-message">{error}</div>}
@@ -137,9 +141,10 @@ function Signup({ onSignupSuccess }) {
               onChange={handleChange}
               disabled={loading}
             >
-              <option value="USER">Sign up as User</option>
-              <option value="ADMIN">Sign up as Admin</option>
+              <option value="USER">Shopper Account</option>
+              <option value="SELLER">Seller Account</option>
             </select>
+
 
             <input
               type="password"
@@ -168,6 +173,8 @@ function Signup({ onSignupSuccess }) {
             Already have an account?{" "}
             <span onClick={() => navigate("/login")}>Login</span>
           </p>
+
+          <p className="auth-mini-help">Admin access is managed separately by the platform.</p>
         </div>
       </div>
     </div>

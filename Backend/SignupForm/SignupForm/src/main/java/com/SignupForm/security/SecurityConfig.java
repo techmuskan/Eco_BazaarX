@@ -1,6 +1,7 @@
 package com.SignupForm.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -25,6 +27,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -45,29 +50,32 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/recommendations/**").permitAll()
                         // 3. Admin-Only Product Management
-                        .requestMatchers(HttpMethod.POST, "/api/product/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/product/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/product/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers(HttpMethod.PUT, "/api/product/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/product/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers("/api/seller/**").hasRole("SELLER")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // 4. Shared Secure Routes (User & Admin)
-                        // ✅ ADDED /api/wishlist/** here to allow CRUD operations for logged-in users
+                        // 4. Buyer Secure Routes
                         .requestMatchers(
                                 "/api/cart/**",
                                 "/api/orders/**",
-                                "/api/profile/**",
                                 "/api/addresses/**",
                                 "/api/wishlist/**",
                                 "/api/insights/user/**"
+                        ).hasRole("USER")
 
-                        ).hasAnyRole("USER", "ADMIN")
+                        // 5. Shared Account Routes
+                        .requestMatchers(
+                                "/api/profile/**"
+                        ).hasAnyRole("USER", "SELLER", "ADMIN")
 
-                        // 5. Catch-all
+                        // 6. Catch-all
                         .anyRequest().authenticated()
                 )
 
-                // 6. JWT Filter Placement
+                // 7. JWT Filter Placement
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -77,11 +85,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:5173"
-        ));
+        configuration.setAllowedOriginPatterns(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .collect(Collectors.toList()));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 

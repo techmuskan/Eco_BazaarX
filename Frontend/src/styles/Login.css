@@ -80,6 +80,29 @@
   color: var(--text-soft);
 }
 
+.login-theme .auth-note {
+  margin-bottom: 16px;
+  border: 1px solid rgba(35, 105, 72, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(238, 248, 241, 0.95), rgba(248, 252, 249, 0.98));
+  padding: 12px 14px;
+}
+
+.login-theme .auth-note strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.login-theme .auth-note p {
+  margin: 0;
+  text-align: left;
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .login-theme .auth-card form {
   display: grid;
   gap: 10px;
@@ -128,6 +151,21 @@
   margin-top: 13px;
   color: var(--text-soft);
   font-size: 14px;
+}
+
+.login-theme .auth-mini-help {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.login-theme .auth-mini-help code {
+  font-family: inherit;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(16, 85, 56, 0.09);
+  color: var(--primary-strong);
 }
 
 .login-theme .auth-card span {

@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { useWishlist } from "../context/WishlistContext";
 import { getProducts } from "../services/productService";
+import { getAddProductPathForRole, getEditProductPathForRole, getProductDetailPath } from "../utils/roleAccess";
 import "../styles/ProductCatalog.css";
 
 function ProductCatalog({ user }) {
@@ -12,6 +13,8 @@ function ProductCatalog({ user }) {
   const { items: cartItems, addToCart, updateQuantity, removeFromCart } = useCart();
   const { showToast } = useToast();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const isBuyer = user?.role === "USER";
+  const isSeller = user?.role === "SELLER";
 
   // Data States
   const [products, setProducts] = useState([]);
@@ -27,13 +30,8 @@ function ProductCatalog({ user }) {
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
-      // Ensure this service call hits your new '/api/products/approved' endpoint
       const data = await getProducts();
-
-      // Safety check: Filter out any "Hold" status items just in case the API 
-      // returned them (Frontend Defense)
-      const approvedOnly = data.filter(p => p.status === "Approved");
-      setProducts(approvedOnly);
+      setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
       setApiError(err.message || "Failed to load products.");
     } finally {
@@ -54,7 +52,19 @@ function ProductCatalog({ user }) {
   // The "Everything" Filter & Sort Logic
   const filteredProducts = useMemo(() => {
     let result = [...products];
-    result = result.filter((p) => p.status === "Approved");
+
+    // Buyers see approved items. Sellers also keep visibility into their own
+    // listings so they can track moderation state from the shared catalog.
+    if (user?.role === "SELLER") {
+      result = result.filter(
+        (p) =>
+          !p.status ||
+          p.status === "Approved" ||
+          p.sellerOwnerEmail === user?.email
+      );
+    } else if (user?.role !== "ADMIN") {
+      result = result.filter((p) => !p.status || p.status === "Approved");
+    }
     // 1. Search Bar (Name or Category)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -83,7 +93,7 @@ function ProductCatalog({ user }) {
     }
 
     return result;
-  }, [products, searchTerm, selectedCategory, sortOrder, ecoFriendlyOnly]);
+  }, [products, searchTerm, selectedCategory, sortOrder, ecoFriendlyOnly, user?.role, user?.email]);
 
   const getCartQuantity = (productId) => {
     return cartItems.find((i) => i.productId === productId)?.quantity || 0;
@@ -182,9 +192,9 @@ function ProductCatalog({ user }) {
           </div>
 
           {/* 4. Admin Button */}
-          {user?.role === "ADMIN" && (
-            <button className="fk-add-btn" onClick={() => navigate("/add-product")} style={{ whiteSpace: "nowrap", padding: "8px 15px" }}>
-              + ADD
+          {(user?.role === "ADMIN" || isSeller) && (
+            <button className="fk-add-btn" onClick={() => navigate(getAddProductPathForRole(user?.role))} style={{ whiteSpace: "nowrap", padding: "8px 15px" }}>
+              + {isSeller ? "LIST" : "ADD"}
             </button>
           )}
         </div>
@@ -204,9 +214,9 @@ function ProductCatalog({ user }) {
               const quantityInCart = getCartQuantity(p.id);
               return (
                 <article key={p.id} className="product-card">
-                  {user?.role === "ADMIN" && (
+                  {(user?.role === "ADMIN" || (isSeller && p.sellerOwnerEmail === user?.email)) && (
                     <div className="admin-actions">
-                      <button className="edit-badge" onClick={() => navigate(`/edit-product/${p.id}`)}>
+                      <button className="edit-badge" onClick={() => navigate(getEditProductPathForRole(user?.role, p.id))}>
                         ✎ EDIT
                       </button>
                     </div>
@@ -230,30 +240,40 @@ function ProductCatalog({ user }) {
 
                     <div className="price-row">
                       <span className="final-price">₹{p.price.toFixed(2)}</span>
-                      <button
-                        className={`wishlist-btn ${isInWishlist(p.id) ? "active" : ""}`}
-                        onClick={() => toggleWishlist(p)}
-                        title={isInWishlist(p.id) ? "Remove from wishlist" : "Add to wishlist"}
-                      >
-                        {isInWishlist(p.id) ? "♥" : "♡"}
-                      </button>
-                    </div>
-
-                    <div className="card-actions">
-                      {quantityInCart > 0 ? (
-                        <div className="qty-control">
-                          <button onClick={() => handleDecrease(p)}>−</button>
-                          <span style={{ padding: "0 10px", fontWeight: "bold" }}>{quantityInCart}</span>
-                          <button onClick={() => handleAddToCart(p)}>+</button>
-                        </div>
-                      ) : (
-                        <button className="cart-btn" onClick={() => handleAddToCart(p)}>
-                          ADD TO CART
+                      {isBuyer && (
+                        <button
+                          className={`wishlist-btn ${isInWishlist(p.id) ? "active" : ""}`}
+                          onClick={() => toggleWishlist(p)}
+                          title={isInWishlist(p.id) ? "Remove from wishlist" : "Add to wishlist"}
+                        >
+                          {isInWishlist(p.id) ? "♥" : "♡"}
                         </button>
                       )}
                     </div>
 
-                    <Link className="impact-link" to={`/products/${p.id}`}>
+                    {isBuyer ? (
+                      <div className="card-actions">
+                        {quantityInCart > 0 ? (
+                          <div className="qty-control">
+                            <button onClick={() => handleDecrease(p)}>−</button>
+                            <span style={{ padding: "0 10px", fontWeight: "bold" }}>{quantityInCart}</span>
+                            <button onClick={() => handleAddToCart(p)}>+</button>
+                          </div>
+                        ) : (
+                          <button className="cart-btn" onClick={() => handleAddToCart(p)}>
+                            ADD TO CART
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="card-actions">
+                        <button className="cart-btn" onClick={() => navigate(getProductDetailPath(p.id))}>
+                          {isSeller ? "VIEW LISTING" : "VIEW DETAILS"}
+                        </button>
+                      </div>
+                    )}
+
+                    <Link className="impact-link" to={getProductDetailPath(p.id)}>
                       VIEW ECO IMPACT
                     </Link>
                   </div>

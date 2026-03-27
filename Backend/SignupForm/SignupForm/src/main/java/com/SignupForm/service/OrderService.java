@@ -8,6 +8,7 @@ import com.SignupForm.entity.*;
 import com.SignupForm.repository.*;
 import com.SignupForm.util.AppConstants;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,9 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+
+    @Value("${app.public-base-url:http://localhost:8080}")
+    private String publicBaseUrl;
 
     // ================= PLACE ORDER =================
     // ================= PLACE ORDER =================
@@ -95,6 +99,9 @@ public class OrderService {
                     .order(order)
                     .product(product)
                     .productName(product.getName())
+                    .sellerEmail(product.getSellerOwnerEmail())
+                    .sellerName(product.getSeller())
+                    .sellerFulfillmentStatus("PENDING")
                     .quantity(quantity)
                     .price(price)
                     .subtotal(itemSubtotal)
@@ -144,7 +151,7 @@ public class OrderService {
 
         List<OrderResponse> responses = new ArrayList<>();
 
-        for (Order order : orderRepository.findByUser(user)) {
+        for (Order order : orderRepository.findByUserOrderByOrderDateDesc(user)) {
             responses.add(mapToOrderResponse(order));
         }
 
@@ -154,12 +161,8 @@ public class OrderService {
     // ================= GET SINGLE ORDER =================
     public OrderResponse getOrderById(Long orderId, String email) {
 
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdAndUserEmail(orderId, email)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        if (!order.getUser().getEmail().equals(email)) {
-            throw new RuntimeException("Access denied");
-        }
 
         return mapToOrderResponse(order);
     }
@@ -178,7 +181,7 @@ public class OrderService {
                     if (img.startsWith("http")) {
                         productImage = img; // already a full URL
                     } else {
-                        productImage = "http://localhost:8080" + img; // relative path
+                        productImage = publicBaseUrl + img; // relative path
                     }
                 }
 

@@ -1,17 +1,38 @@
-import axios from "axios";
+import api from "./api";
 
-const API_URL = "http://localhost:8080/api/insights";
+const parseInsightsError = (error, fallbackMessage) => {
+  if (error.response) {
+    const status = error.response.status;
+    const message = error.response.data?.message || error.response.data?.error;
 
-const getAuthHeader = () => ({
-  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-});
+    if (status === 401) {
+      throw new Error("Your session has expired. Please log in again.");
+    }
+
+    if (status === 403) {
+      throw new Error("Your account does not have access to this sustainability view.");
+    }
+
+    throw new Error(message || fallbackMessage);
+  }
+
+  throw new Error("Unable to reach the sustainability service right now.");
+};
 
 export const fetchUserInsights = async () => {
-  const response = await axios.get(`${API_URL}/user`, getAuthHeader());
-  return response.data; // Returns CarbonInsightsResponse DTO
+  try {
+    const response = await api.get("/insights/user");
+    return response.data;
+  } catch (error) {
+    parseInsightsError(error, "Failed to load sustainability insights.");
+  }
 };
 
 export const fetchAdminAnalytics = async () => {
-  const response = await axios.get(`${API_URL}/admin/report`, getAuthHeader());
-  return response.data;
+  try {
+    const response = await api.get("/insights/admin/report");
+    return response.data;
+  } catch (error) {
+    parseInsightsError(error, "Failed to load admin sustainability analytics.");
+  }
 };

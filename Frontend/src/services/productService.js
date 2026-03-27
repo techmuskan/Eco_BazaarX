@@ -9,7 +9,7 @@ function handleError(error, fallbackMessage) {
       throw new Error("Session expired. Please login again.");
     }
     if (status === 403) {
-      throw new Error("Access denied. Admin privileges required.");
+      throw new Error("Access denied. Seller or admin privileges required.");
     }
     if (status === 404) {
       throw new Error("Endpoint not found. Check backend mapping.");
@@ -66,7 +66,7 @@ export async function searchProducts(keyword) {
 }
 
 /**
- * CREATE PRODUCT (ADMIN)
+ * CREATE PRODUCT (SELLER / ADMIN)
  * Accepts the flat ProductRequest DTO
  */
 export async function createProduct(productDTO) {
@@ -79,7 +79,7 @@ export async function createProduct(productDTO) {
 }
 
 /**
- * UPDATE PRODUCT (ADMIN)
+ * UPDATE PRODUCT (SELLER / ADMIN)
  * Accepts ID and the flat ProductRequest DTO
  */
 export async function updateProduct(id, productDTO) {
@@ -92,7 +92,7 @@ export async function updateProduct(id, productDTO) {
 }
 
 /**
- * DELETE PRODUCT (ADMIN)
+ * DELETE PRODUCT (SELLER / ADMIN)
  */
 export async function deleteProduct(id) {
   try {

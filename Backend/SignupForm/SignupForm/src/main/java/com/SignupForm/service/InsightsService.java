@@ -10,6 +10,7 @@ import com.SignupForm.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,13 +22,17 @@ public class InsightsService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
 
+    @Transactional(readOnly = true)
     public CarbonInsightsResponse getInsightsData(String email) {
 
         // 1. Fetch orders sorted by date
         List<Order> orders = orderRepository.findByEmailOrderByOrderDateAsc(email);
+        List<Order> datedOrders = orders.stream()
+                .filter(order -> order.getOrderDate() != null)
+                .toList();
 
         // 2. Monthly Trend Calculation
-        Map<String, Double> trendMap = orders.stream()
+        Map<String, Double> trendMap = datedOrders.stream()
                 .collect(Collectors.groupingBy(
                         o -> o.getOrderDate().getMonth().name().substring(0, 3),
                         LinkedHashMap::new,

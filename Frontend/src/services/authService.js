@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../config/api";
+import { buildAuthHeaders, getValidToken, parseTokenPayload } from "../utils/authSession";
 
 const API_URL = `${API_BASE_URL}/api/auth`;
 
@@ -107,6 +108,10 @@ export const logout = () => {
   localStorage.removeItem("token");
 };
 
+export const setStoredUser = (user) => {
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
 // ================= GET STORED USER =================
 export const getStoredUser = () => {
   try {
@@ -119,13 +124,12 @@ export const getStoredUser = () => {
 
 // ================= GET TOKEN =================
 export const getToken = () => {
-  return localStorage.getItem("token");
+  return getValidToken();
 };
 
 // ================= AUTH HEADER (IMPORTANT FOR CART / ORDER APIs) =================
 export const getAuthHeader = () => {
-  const token = getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return buildAuthHeaders();
 };
 
 // ================= GET USER ROLE =================
@@ -136,15 +140,17 @@ export const getResolvedRole = () => {
   const token = getToken();
   if (!token) return null;
 
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload?.role ? String(payload.role).toUpperCase() : null;
-  } catch {
-    return null;
-  }
+  const payload = parseTokenPayload(token);
+  return payload?.role ? String(payload.role).toUpperCase() : null;
 };
 
 // ================= AUTH CHECK =================
 export const isAuthenticated = () => {
-  return Boolean(getToken());
+  const token = getValidToken();
+  if (!token) {
+    logout();
+    return false;
+  }
+
+  return true;
 };

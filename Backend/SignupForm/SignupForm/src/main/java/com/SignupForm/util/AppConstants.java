@@ -15,6 +15,7 @@ public final class AppConstants {
 
     // USER ROLES
     public static final String ROLE_USER = "USER";
+    public static final String ROLE_SELLER = "SELLER";
     public static final String ROLE_ADMIN = "ADMIN";
 
     // CART

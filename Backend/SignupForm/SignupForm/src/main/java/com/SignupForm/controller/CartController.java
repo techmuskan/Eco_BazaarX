@@ -15,7 +15,7 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+@PreAuthorize("hasRole('USER')")
 public class CartController {
 
     private final CartService cartService;

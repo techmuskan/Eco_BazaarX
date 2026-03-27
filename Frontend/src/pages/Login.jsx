@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
+import { getDashboardPathForRole } from "../utils/roleAccess";
 import "../styles/Login.css";
 
 function Login({ onLoginSuccess }) {
@@ -35,7 +36,7 @@ function Login({ onLoginSuccess }) {
       if (!token || !user) throw new Error("Invalid email or password");
       
       onLoginSuccess(user); // pass user only, keep your existing logic
-      navigate("/dashboard"); 
+      navigate(getDashboardPathForRole(user.role)); 
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {

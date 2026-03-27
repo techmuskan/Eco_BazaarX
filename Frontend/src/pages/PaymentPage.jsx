@@ -2,6 +2,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import MainNavbar from "../components/MainNavbar";
 import { useToast } from "../context/ToastContext";
+import { API_BASE_URL } from "../config/api";
+import { getValidToken } from "../utils/authSession";
+import { getCatalogPathForRole, getCheckoutPathForRole, getOrderSuccessPathForRole } from "../utils/roleAccess";
 import "../styles/PaymentPage.css";
 
 function PaymentPage() {
@@ -24,7 +27,12 @@ function PaymentPage() {
   useEffect(() => {
     if (!order) {
       showToast("No active order session found", "error");
-      navigate("/products");
+      navigate(getCatalogPathForRole("USER"));
+      return;
+    }
+
+    if (order.paymentMethod === "card" || order.paymentMethod === "upi") {
+      showToast("Card and UPI payments will be available soon.", "info");
     }
   }, [order, navigate, showToast]);
 
@@ -35,22 +43,24 @@ function PaymentPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const isComingSoonFlow = order.paymentMethod === "card" || order.paymentMethod === "upi";
+
   const handlePayment = async (e) => {
     e.preventDefault();
-    setProcessing(true);
 
-    if (order.paymentMethod === "card" || order.paymentMethod === "upi") {
+    if (isComingSoonFlow) {
       showToast("This service will be available soon.", "info");
-      setProcessing(false);
       return;
     }
 
+    setProcessing(true);
+
     try {
-      const token = localStorage.getItem("token");
+      const token = getValidToken();
       
       // Match the backend endpoint you likely have
       // Using order.id or order.orderId depending on your DTO
-      const response = await fetch(`http://localhost:8080/api/orders/pay/${order.id || order.orderId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/orders/pay/${order.id || order.orderId}`, {
         method: "POST",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -70,7 +80,7 @@ function PaymentPage() {
       showToast("Payment Successful! Your order is being processed.", "success");
       
       // Navigate to success page with order details
-      navigate("/order-success", { state: { order } });
+      navigate(getOrderSuccessPathForRole(), { state: { order } });
       
     } catch (err) {
       showToast(err.message, "error");
@@ -96,13 +106,19 @@ function PaymentPage() {
               <form onSubmit={handlePayment}>
                 {order.paymentMethod === "card" && (
                   <div className="card-input-group">
-                    <p className="helper-text">Card service will be available soon.</p>
+                    <div className="coming-soon-panel">
+                      <h3>Card Payments Arriving Soon</h3>
+                      <p>
+                        Secure card checkout is on the roadmap. For this release, please place
+                        your order with Cash on Delivery.
+                      </p>
+                    </div>
                     <p className="input-label">Credit / Debit Card Details</p>
                     <input 
                       type="text" 
                       name="cardNumber"
                       placeholder="XXXX XXXX XXXX XXXX" 
-                      required 
+                      disabled
                       maxLength="16"
                       value={formData.cardNumber}
                       onChange={handleInputChange}
@@ -112,7 +128,7 @@ function PaymentPage() {
                         type="text" 
                         name="expiry"
                         placeholder="MM/YY" 
-                        required 
+                        disabled
                         maxLength="5" 
                         value={formData.expiry}
                         onChange={handleInputChange}
@@ -121,7 +137,7 @@ function PaymentPage() {
                         type="password" 
                         name="cvv"
                         placeholder="CVV" 
-                        required 
+                        disabled
                         maxLength="3" 
                         value={formData.cvv}
                         onChange={handleInputChange}
@@ -132,13 +148,19 @@ function PaymentPage() {
 
                 {order.paymentMethod === "upi" && (
                   <div className="upi-input-group">
-                    <p className="helper-text">UPI service will be available soon.</p>
+                    <div className="coming-soon-panel">
+                      <h3>UPI Payments Arriving Soon</h3>
+                      <p>
+                        UPI checkout will be available in an upcoming release. For now, please
+                        choose Cash on Delivery at checkout.
+                      </p>
+                    </div>
                     <p className="input-label">Your UPI ID</p>
                     <input 
                       type="text" 
                       name="upiId"
                       placeholder="username@bankid" 
-                      required 
+                      disabled
                       value={formData.upiId}
                       onChange={handleInputChange}
                     />
@@ -146,9 +168,17 @@ function PaymentPage() {
                   </div>
                 )}
 
-                <button type="submit" className="pay-now-btn" disabled={processing}>
-                  {processing ? "PROCESSING..." : `PAY ₹${order.totalAmount.toLocaleString()}`}
-                </button>
+                {isComingSoonFlow ? (
+                  <div className="coming-soon-actions">
+                    <button type="button" className="pay-now-btn muted-btn" onClick={() => navigate(getCheckoutPathForRole())}>
+                      Go Back to Checkout
+                    </button>
+                  </div>
+                ) : (
+                  <button type="submit" className="pay-now-btn" disabled={processing}>
+                    {processing ? "PROCESSING..." : `PAY ₹${order.totalAmount.toLocaleString()}`}
+                  </button>
+                )}
               </form>
             </div>
           </div>

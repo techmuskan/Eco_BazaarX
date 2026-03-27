@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
 import { useCart } from "../context/CartContext";
@@ -8,6 +8,11 @@ import { fetchAddresses, createAddress, updateAddress, deleteAddress } from "../
 import "../styles/CartCheckout.css";
 
 const round = (value) => Math.round(value * 100) / 100;
+const PAYMENT_METHODS = [
+  { id: "cod", label: "Cash on Delivery", description: "Available now", available: true },
+  { id: "card", label: "Credit / Debit Card", description: "Coming soon", available: false },
+  { id: "upi", label: "UPI", description: "Coming soon", available: false },
+];
 
 function CheckoutPage() {
   const navigate = useNavigate();
@@ -30,30 +35,25 @@ function CheckoutPage() {
 
   // ======================== CALCULATIONS ========================
   // ======================== FIXED CARBON CALCULATION ========================
-const totalCarbon = useMemo(() => {
-  return items.reduce((acc, item) => {
-    // We now take the emission value as the total for that line item,
-    // just like we do in the CartContext to avoid 10.80 (double math).
-    const lineEmission = 
-      item.emission || 
-      item.totalCO2ePerKg || 
-      item.carbonData?.totalCO2ePerKg || 
-      0;
-      
-    return acc + lineEmission; 
-  }, 0);
-}, [items]);
+  const totalCarbon = useMemo(() => {
+    return items.reduce((acc, item) => {
+      const lineEmission =
+        item.emission ||
+        item.totalCO2ePerKg ||
+        item.carbonData?.totalCO2ePerKg ||
+        0;
 
-  const shipping = useMemo(() => (subtotal > 1000 ? 0 : 50), [subtotal]);
+      return acc + lineEmission;
+    }, 0);
+  }, [items]);
+
+  const shipping = useMemo(() => (subtotal >= 500 ? 0 : 40), [subtotal]);
   const totalAmount = useMemo(() => round(subtotal + shipping), [subtotal, shipping]);
 
   // ======================== EFFECTS ========================
-  useEffect(() => {
-    loadAddresses();
-  }, []);
-
-  const loadAddresses = async () => {
+  const loadAddresses = useCallback(async () => {
     try {
+      setLoadingAddresses(true);
       const data = await fetchAddresses();
       setAddresses(data);
       if (data.length > 0 && !selectedAddressId) {
@@ -64,7 +64,11 @@ const totalCarbon = useMemo(() => {
     } finally {
       setLoadingAddresses(false);
     }
-  };
+  }, [selectedAddressId, showToast]);
+
+  useEffect(() => {
+    loadAddresses();
+  }, [loadAddresses]);
 
   // ======================== ADDRESS ACTIONS ========================
   const handleDeleteAddress = async (e, id) => {
@@ -122,6 +126,10 @@ const totalCarbon = useMemo(() => {
       return showToast("Please select or add an address", "error");
     }
 
+    if (paymentMethod !== "cod") {
+      return showToast("Card and UPI payments will be available soon. Please use Cash on Delivery for now.", "info");
+    }
+
     setProcessing(true);
     try {
       const selectedAddr = addresses.find(a => a.id === selectedAddressId);
@@ -142,8 +150,7 @@ const totalCarbon = useMemo(() => {
       clearCart?.();
       showToast("Order placed successfully!", "success");
       
-      // Navigate based on payment type
-      navigate(paymentMethod === "cod" ? "/order-success" : "/payment-process", { 
+      navigate("/order-success", {
         state: { order } 
       });
     } catch (err) {
@@ -169,7 +176,11 @@ const totalCarbon = useMemo(() => {
 
               {activeStep === 1 && (
                 <div className="step-content">
-                  {!isAddingNew ? (
+                  {loadingAddresses ? (
+                    <div className="address-list">
+                      <p>Loading saved addresses...</p>
+                    </div>
+                  ) : !isAddingNew ? (
                     <div className="address-list">
                       {addresses.map((addr) => (
                         <label key={addr.id} className={`addr-item ${selectedAddressId === addr.id ? 'selected' : ''}`}>
@@ -235,11 +246,11 @@ const totalCarbon = useMemo(() => {
                 <div className="step-content">
                   <div className="mini-cart">
                     {items.map(item => (
-                      <div key={item.id} className="mini-item">
-                        <img src={item.image} alt={item.name} />
+                      <div key={item.itemId || item.productId} className="mini-item">
+                        <img src={item.image || "https://via.placeholder.com/150?text=No+Image"} alt={item.productName} />
                         <div className="mini-details">
-                          <h4>{item.name}</h4>
-                          <p className="mini-price">₹{item.price} × {item.quantity}</p>
+                          <h4>{item.productName}</h4>
+                          <p className="mini-price">₹{Number(item.subtotal ?? item.price ?? 0).toFixed(2)} ({item.quantity} qty)</p>
                         </div>
                       </div>
                     ))}
@@ -258,20 +269,33 @@ const totalCarbon = useMemo(() => {
               {activeStep === 3 && (
                 <div className="step-content">
                   <div className="payment-options">
-                    {['cod', 'card', 'upi'].map((method) => (
-                      <label key={method} className={`pay-option ${paymentMethod === method ? 'selected' : ''}`}>
+                    {PAYMENT_METHODS.map((method) => (
+                      <label
+                        key={method.id}
+                        className={`pay-option ${paymentMethod === method.id ? 'selected' : ''} ${!method.available ? 'coming-soon' : ''}`}
+                      >
                         <input 
                           type="radio" 
                           name="payment"
-                          checked={paymentMethod === method} 
-                          onChange={() => setPaymentMethod(method)} 
+                          checked={paymentMethod === method.id}
+                          disabled={!method.available}
+                          onChange={() => setPaymentMethod(method.id)}
                         />
-                        <span>{method.toUpperCase()}</span>
+                        <div className="payment-copy">
+                          <span className="payment-label">{method.label}</span>
+                          <small>{method.description}</small>
+                        </div>
+                        {!method.available && <span className="soon-badge">Soon</span>}
                       </label>
                     ))}
                   </div>
+                  {paymentMethod !== "cod" && (
+                    <div className="payment-coming-soon-note">
+                      Secure Card and UPI checkout is in progress and will be available in an upcoming release.
+                    </div>
+                  )}
                   <button className="final-place-btn" onClick={handlePlaceOrder} disabled={processing}>
-                    {processing ? "PROCESSING..." : "CONFIRM ORDER"}
+                    {processing ? "PROCESSING..." : "PLACE COD ORDER"}
                   </button>
                 </div>
               )}
