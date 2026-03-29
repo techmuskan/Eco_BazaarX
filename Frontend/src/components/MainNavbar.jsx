@@ -29,6 +29,7 @@ function MainNavbar({ onLogout }) {
   const user = getStoredUser();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const homePath = getDashboardPathForRole(user?.role);
   const catalogPath = getCatalogPathForRole(user?.role);
   const accountPath = getAccountPathForRole(user?.role);
@@ -38,19 +39,25 @@ function MainNavbar({ onLogout }) {
 
   const isActive = (path) => location.pathname === path;
 
- const handleLogout = () => {
-  logout(); // ✅ always clear token
+  const handleLogout = () => {
+    logout();
+    closeSidebar();
+    setIsMobileMenuOpen(false);
 
-  if (onLogout) {
-    onLogout(); // update App state
-  }
+    if (onLogout) {
+      onLogout();
+      return;
+    }
 
-  navigate("/login");
-   window.location.reload(); 
-};
+    navigate("/login", { replace: true });
+  };
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -59,28 +66,40 @@ function MainNavbar({ onLogout }) {
         <div className="main-nav-shell">
           <Link to={homePath} className="brand">EcoBazaarX</Link>
 
-          <div className="main-nav-links">
+          <button
+            type="button"
+            className="mobile-menu-btn"
+            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((current) => !current)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+
+          <div className={`main-nav-links ${isMobileMenuOpen ? "open" : ""}`}>
             {isAdmin && (
               <>
-                <Link className={isActive(getAdminDashboardPath()) ? "active" : ""} to={getAdminDashboardPath()}>Overview</Link>
-                <Link className={isActive(getAdminManagementPath()) ? "active" : ""} to={getAdminManagementPath()}>Management</Link>
-                <Link className={isActive(getAdminCatalogPath()) ? "active" : ""} to={getAdminCatalogPath()}>Catalog</Link>
+                <Link className={isActive(getAdminDashboardPath()) ? "active" : ""} to={getAdminDashboardPath()} onClick={closeMobileMenu}>Overview</Link>
+                <Link className={isActive(getAdminManagementPath()) ? "active" : ""} to={getAdminManagementPath()} onClick={closeMobileMenu}>Management</Link>
+                <Link className={isActive(getAdminCatalogPath()) ? "active" : ""} to={getAdminCatalogPath()} onClick={closeMobileMenu}>Catalog</Link>
               </>
             )}
             {!isAdmin && (
               <>
-                <Link className={isActive(homePath) ? "active" : ""} to={homePath}>
+                <Link className={isActive(homePath) ? "active" : ""} to={homePath} onClick={closeMobileMenu}>
                   {isSeller ? "Seller Hub" : "Home"}
                 </Link>
-                <Link className={isActive(catalogPath) ? "active" : ""} to={catalogPath}>Catalog</Link>
+                <Link className={isActive(catalogPath) ? "active" : ""} to={catalogPath} onClick={closeMobileMenu}>Catalog</Link>
               </>
             )}
-            {!isAdmin && !isSeller && <Link className={isActive(getInsightsPathForRole()) ? "active" : ""} to={getInsightsPathForRole()}>Insights</Link>}
+            {!isAdmin && !isSeller && <Link className={isActive(getInsightsPathForRole()) ? "active" : ""} to={getInsightsPathForRole()} onClick={closeMobileMenu}>Insights</Link>}
             {isSeller && (
-              <Link className={isActive(getAddProductPathForRole(user?.role)) ? "active" : ""} to={getAddProductPathForRole(user?.role)}>List Product</Link>
+              <Link className={isActive(getAddProductPathForRole(user?.role)) ? "active" : ""} to={getAddProductPathForRole(user?.role)} onClick={closeMobileMenu}>List Product</Link>
             )}
             {showShopperActions && (
-            <Link className={isActive(getCartPathForRole()) ? "active" : ""} to={getCartPathForRole()}>
+            <Link className={isActive(getCartPathForRole()) ? "active" : ""} to={getCartPathForRole()} onClick={closeMobileMenu}>
               <div className="cart-link-content">
                 <i className="fa-solid fa-cart-shopping"></i>
                 <span>Cart</span>
@@ -91,7 +110,7 @@ function MainNavbar({ onLogout }) {
           </div>
 
           <div className="navbar-right">
-            <div className="profile-icon" onClick={() => setIsSidebarOpen(true)}>
+            <div className="profile-icon" onClick={() => { setIsSidebarOpen(true); closeMobileMenu(); }}>
               {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
             </div>
           </div>

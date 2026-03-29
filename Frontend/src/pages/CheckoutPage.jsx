@@ -6,6 +6,7 @@ import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { placeOrderApi } from "../services/orderService";
 import { fetchAddresses, createAddress, updateAddress, deleteAddress } from "../services/addressService";
+import { getCartPathForRole, getOrderSuccessPathForRole } from "../utils/roleAccess";
 import "../styles/CartCheckout.css";
 
 const round = (value) => Math.round(value * 100) / 100;
@@ -151,7 +152,7 @@ function CheckoutPage() {
       clearCart?.();
       showToast("Order placed successfully!", "success");
       
-      navigate("/order-success", {
+      navigate(getOrderSuccessPathForRole(), {
         state: { order } 
       });
     } catch (err) {
@@ -166,7 +167,7 @@ function CheckoutPage() {
       <MainNavbar />
       <div className="checkout-bg">
         <div className="checkout-container">
-          <BackButton fallbackTo="/cart" label="Back" className="checkout-back-button" />
+          <BackButton fallbackTo={getCartPathForRole()} label="Back" className="checkout-back-button" />
           
           <div className="checkout-left">
             {/* Step 1: Address Selection */}

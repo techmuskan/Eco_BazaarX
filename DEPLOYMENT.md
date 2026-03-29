@@ -51,6 +51,8 @@ Example production value:
 REACT_APP_API_BASE_URL=https://api.your-domain.com
 ```
 
+If you deploy frontend and backend separately, do not leave this pointed at localhost.
+
 ## 3. Local verification
 
 Backend:
@@ -99,7 +101,17 @@ Optional demo mode:
 6. Use a real production MySQL database
 7. Confirm mail credentials are app-specific and not personal account secrets in source
 
-## 6. Current deployment posture
+## 6. Fast go-live checklist
+
+1. Set backend env vars from `Backend/SignupForm/SignupForm/.env.example`
+2. Set frontend env vars from `Frontend/.env.example`
+3. Deploy the backend first and verify `/api/auth/login` is reachable
+4. Set `REACT_APP_API_BASE_URL` to the deployed backend URL
+5. Deploy the frontend
+6. Provision the first admin using bootstrap admin only once
+7. Turn bootstrap admin back off
+8. Smoke-test login, signup, catalog, and one admin action
+## 7. Current deployment posture
 
 This project is now suitable for demo/staging deployment with environment-based config. Before public production exposure, you should still do:
 

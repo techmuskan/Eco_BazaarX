@@ -8,6 +8,9 @@ function OrderSuccess() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const order = state?.order;
+  const customerName = order?.customerName || order?.fullName || "Customer";
+  const orderNumber = order?.orderNumber || order?.id;
+  const totalAmount = Number(order?.totalAmount || 0);
 
   // Redirect if accessed without order data
   useEffect(() => {
@@ -32,10 +35,10 @@ function OrderSuccess() {
           </div>
 
           <h1>Order Placed Successfully!</h1>
-          <p className="order-id">Order ID: <strong>#{order.orderNumber || order.id}</strong></p>
+          <p className="order-id">Order ID: <strong>#{orderNumber}</strong></p>
           <p className="success-msg">
-            Thank you for your purchase, <strong>{order.fullName || "Customer"}</strong>! 
-            A confirmation email has been sent to your registered address.
+            Thank you for your purchase, <strong>{customerName}</strong>!
+            {order?.email ? ` A confirmation email has been sent to ${order.email}.` : " Your order is now being processed."}
           </p>
 
           <div className="order-summary-box">
@@ -45,7 +48,7 @@ function OrderSuccess() {
             </div>
             <div className="summary-row">
               <span>Total Paid:</span>
-              <span className="total-amt">₹{order.totalAmount.toLocaleString()}</span>
+              <span className="total-amt">₹{totalAmount.toLocaleString()}</span>
             </div>
             <div className="summary-row">
               <span>Payment Mode:</span>

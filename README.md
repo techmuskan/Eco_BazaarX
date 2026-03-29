@@ -119,7 +119,7 @@ EcoBazaarX - zip/
 
 ### Frontend configuration
 
-Create or update `Frontend/.env`:
+Copy from `Frontend/.env.example` and create `Frontend/.env`:
 
 ```env
 REACT_APP_API_BASE_URL=http://localhost:8080
@@ -143,6 +143,14 @@ Important values:
 - `APP_CORS_ALLOWED_ORIGINS`
 
 It is recommended to override these with environment variables instead of relying on defaults.
+
+For a ready-to-copy backend template, use:
+
+- `Backend/SignupForm/SignupForm/.env.example`
+
+For a ready-to-copy frontend template, use:
+
+- `Frontend/.env.example`
 
 ## Running The Project
 
@@ -206,6 +214,12 @@ Before any shared or production deployment:
 - configure explicit production CORS origins
 - disable any local bootstrap-only admin behavior if not needed
 - use deployment-specific mail credentials
+
+## Deployment
+
+Deployment instructions and production notes are available in:
+
+- `DEPLOYMENT.md`
 
 ## Debugging Report
 

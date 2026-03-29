@@ -122,78 +122,55 @@ function ProductCatalog({ user }) {
       <MainNavbar />
 
       <div className="catalog-header-section">
-        <div className="header-container" style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "20px",
-          flexWrap: "nowrap" /* Ensures everything stays in one line */
-        }}>
+        <div className="header-container catalog-toolbar">
 
           {/* 1. Title Group */}
-          <div className="title-group" style={{ minWidth: "fit-content" }}>
-            <h1 style={{ fontSize: "16px" }}>All Products</h1>
-            <p style={{ fontSize: "11px", margin: 0 }}>{filteredProducts.length} items</p>
+          <div className="title-group catalog-title-group">
+            <h1>All Products</h1>
+            <p>{filteredProducts.length} items</p>
           </div>
 
           {/* 2. Search Bar - Flex 1 allows it to take up remaining middle space */}
-          <div className="search-container" style={{ flex: 2, position: "relative" }}>
+          <div className="search-container catalog-search">
             <input
               type="text"
               placeholder="Search for products..."
               className="main-search-input"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px 16px",
-                border: "1px solid #dbdbdb",
-                borderRadius: "2px",
-                fontSize: "14px",
-                outline: "none",
-                boxShadow: "0 2px 4px 0 rgba(0,0,0,.08)"
-              }}
             />
           </div>
 
           {/* 3. Filters Group - Wrapped in a div to keep them together */}
-          <div className="filter-controls" style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "15px",
-            background: "none",
-            padding: 0,
-            margin: 0,
-            boxShadow: "none"
-          }}>
+          <div className="filter-controls catalog-filters">
             <div className="filter-group">
-              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} style={{ padding: "6px" }}>
+              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                 {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
 
             <div className="filter-group">
-              <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} style={{ padding: "6px" }}>
+              <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                 <option value="default">Sort By</option>
                 <option value="low-high">Price: Low-High</option>
                 <option value="high-low">Price: High-Low</option>
               </select>
             </div>
 
-            <div className="filter-group checkbox-group" style={{ marginTop: 0, display: "flex", alignItems: "center" }}>
+            <div className="filter-group checkbox-group catalog-checkbox">
               <input
                 type="checkbox"
                 id="eco"
                 checked={ecoFriendlyOnly}
                 onChange={(e) => setEcoFriendlyOnly(e.target.checked)}
               />
-              <label htmlFor="eco" style={{ fontSize: "12px", marginLeft: "4px", whiteSpace: "nowrap" }}>🌱 Eco</label>
+              <label htmlFor="eco">Eco</label>
             </div>
           </div>
 
           {/* 4. Admin Button */}
           {(user?.role === "ADMIN" || isSeller) && (
-            <button className="fk-add-btn" onClick={() => navigate(getAddProductPathForRole(user?.role))} style={{ whiteSpace: "nowrap", padding: "8px 15px" }}>
+            <button className="fk-add-btn catalog-add-btn" onClick={() => navigate(getAddProductPathForRole(user?.role))}>
               + {isSeller ? "LIST" : "ADD"}
             </button>
           )}
