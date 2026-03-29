@@ -1,6 +1,6 @@
 # EcoBazaarX
 
-EcoBazaarX is a full-stack SaaS-style e-commerce platform built with React, Spring Boot, and MySQL. The application supports three role-based experiences:
+EcoBazaarX is a full-stack role-based e-commerce platform built with React, Spring Boot, and MySQL. The application supports three main experiences:
 
 - `USER`: shopping, cart, wishlist, checkout, orders, sustainability insights
 - `SELLER`: store profile, product management, seller orders, fulfillment workflow
@@ -89,7 +89,7 @@ EcoBazaarX is a full-stack SaaS-style e-commerce platform built with React, Spri
 ## Project Structure
 
 ```text
-EcoBazaarX - zip/
+EcoBazaarX/
 ├── Frontend/
 │   ├── src/
 │   │   ├── components/
@@ -105,7 +105,6 @@ EcoBazaarX - zip/
 │           ├── src/main/java/com/SignupForm/
 │           ├── src/main/resources/
 │           └── pom.xml
-└── DEBUG_REPORT.md
 ```
 
 ## Local Setup
@@ -204,28 +203,6 @@ mvn test
 - Seller accounts are approval-aware.
 - Admin flows are split into overview, management, and catalog workspaces.
 - Sustainability insights depend on order data being present for the logged-in user.
-
-## Recommended Environment Hardening
-
-Before any shared or production deployment:
-
-- move DB credentials out of `application.properties`
-- set a strong JWT secret through environment variables
-- configure explicit production CORS origins
-- disable any local bootstrap-only admin behavior if not needed
-- use deployment-specific mail credentials
-
-## Deployment
-
-Deployment instructions and production notes are available in:
-
-- `DEPLOYMENT.md`
-
-## Debugging Report
-
-A running project debug and refactor summary is available at:
-
-- `DEBUG_REPORT.md`
 
 ## Status
 
